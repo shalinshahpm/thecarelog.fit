@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthMetrics } from "@db/schema";
+import { healthMetrics, users } from "@db/schema";
 import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
@@ -21,7 +21,7 @@ export function registerRoutes(app: Express): Server {
           userId: req.user!.id
         })
         .returning();
-      
+
       res.json(newMetric[0]);
     } catch (error) {
       res.status(500).send("Failed to save health metrics");

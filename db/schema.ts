@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
+import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -44,6 +45,12 @@ export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 export const insertHealthMetricSchema = createInsertSchema(healthMetrics);
 export const selectHealthMetricSchema = createSelectSchema(healthMetrics);
+
+// Separate login schema that only requires username and password
+export const loginUserSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

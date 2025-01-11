@@ -5,7 +5,7 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { users, insertUserSchema, type User as SelectUser } from "@db/schema";
+import { users, insertUserSchema, loginUserSchema, type User as SelectUser } from "@db/schema";
 import { db } from "@db";
 import { eq } from "drizzle-orm";
 
@@ -107,7 +107,7 @@ export function setupAuth(app: Express) {
           .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
       }
 
-      const { username, password } = result.data;
+      const { username, password, email } = result.data;
 
       // Check if user already exists
       const [existingUser] = await db
@@ -127,8 +127,9 @@ export function setupAuth(app: Express) {
       const [newUser] = await db
         .insert(users)
         .values({
-          ...result.data,
+          username,
           password: hashedPassword,
+          email,
         })
         .returning();
 
@@ -148,7 +149,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    const result = insertUserSchema.safeParse(req.body);
+    const result = loginUserSchema.safeParse(req.body);
     if (!result.success) {
       return res
         .status(400)
