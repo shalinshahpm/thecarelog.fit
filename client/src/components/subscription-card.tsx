@@ -16,11 +16,13 @@ export default function SubscriptionCard() {
 
   const handleDonation = async () => {
     try {
-      if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+      const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+      if (!publicKey) {
+        console.error("Missing Stripe public key:", import.meta.env);
         throw new Error("Stripe public key is not configured");
       }
       
-      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+      const stripe = await loadStripe(publicKey);
       if (!stripe) {
         throw new Error("Failed to initialize Stripe");
       }
