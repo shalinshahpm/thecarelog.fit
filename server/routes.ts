@@ -62,6 +62,29 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       res.status(500).send("Failed to update subscription");
     }
+
+  // Stripe payment endpoint
+  app.post("/api/create-payment", async (req, res) => {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(500).send("Stripe key not configured");
+    }
+
+    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+    try {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 500, // $5.00
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+      res.status(500).send("Payment failed");
+    }
+  });
+
   });
 
   const httpServer = createServer(app);

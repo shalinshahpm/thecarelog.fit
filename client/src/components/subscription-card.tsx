@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,11 +8,30 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Coffee } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
 
 export default function SubscriptionCard() {
-  const handleDonation = () => {
-    // Open donation link in a new tab
-    window.open("https://www.buymeacoffee.com/healthmanager", "_blank");
+  const handleDonation = async () => {
+    const stripe = await loadStripe(process.env.STRIPE_PUBLIC_KEY || "");
+    if (!stripe) return;
+
+    const response = await fetch("/api/create-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const { clientSecret } = await response.json();
+    
+    const result = await stripe.confirmPayment({
+      clientSecret,
+      confirmParams: {
+        return_url: window.location.origin + "/thank-you",
+      },
+    });
+
+    if (result.error) {
+      console.error(result.error);
+    }
   };
 
   return (
