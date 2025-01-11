@@ -17,10 +17,10 @@ export default function SubscriptionCard() {
     try {
       // Get the Stripe public key from environment variables
       const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-      console.log("Stripe public key status:", publicKey ? "Found" : "Missing");
+      console.log("Stripe public key:", publicKey ? "Found" : "Missing");
 
-      if (!publicKey) {
-        console.error("Stripe public key is not configured");
+      if (!publicKey || publicKey === "pk_test_your_publishable_key") {
+        console.error("Invalid Stripe public key configuration");
         toast({
           variant: "destructive",
           title: "Configuration Error",
