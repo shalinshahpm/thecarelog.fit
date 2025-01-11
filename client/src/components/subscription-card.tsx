@@ -12,7 +12,7 @@ import { loadStripe } from "@stripe/stripe-js";
 
 export default function SubscriptionCard() {
   const handleDonation = async () => {
-    const stripe = await loadStripe(process.env.STRIPE_PUBLIC_KEY || "");
+    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "");
     if (!stripe) return;
 
     const response = await fetch("/api/create-payment", {
