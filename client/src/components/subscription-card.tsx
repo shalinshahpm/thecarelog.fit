@@ -91,14 +91,13 @@ export default function SubscriptionCard() {
             <li>Help us maintain and improve the app for the community</li>
           </ul>
         </div>
-        <div className="w-full">
-        <script async src="https://js.stripe.com/v3/buy-button.js"></script>
-        <stripe-buy-button
-          buy-button-id="buy_btn_1QgETwGgp9d5qMS3QCONdOI8"
-          publishable-key={import.meta.env.VITE_STRIPE_PUBLIC_KEY}
+        <Button
+          onClick={handleDonation}
+          className="w-full text-lg p-6 flex items-center justify-center gap-2"
         >
-        </stripe-buy-button>
-      </div>
+          <Coffee className="h-6 w-6" />
+          Buy Me a Coffee ☕
+        </Button>
       </CardContent>
     </Card>
   );
