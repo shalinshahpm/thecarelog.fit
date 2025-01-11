@@ -9,28 +9,48 @@ import {
 } from "@/components/ui/card";
 import { Coffee } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SubscriptionCard() {
+  const { toast } = useToast();
+
   const handleDonation = async () => {
-    const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-    if (!stripe) return;
+    try {
+      const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+      if (!stripe) {
+        throw new Error("Failed to initialize Stripe");
+      }
 
-    const response = await fetch("/api/create-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
+      const response = await fetch("/api/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
-    const { clientSecret } = await response.json();
-    
-    const result = await stripe.confirmPayment({
-      clientSecret,
-      confirmParams: {
-        return_url: window.location.origin + "/thank-you",
-      },
-    });
+      if (!response.ok) {
+        throw new Error("Payment request failed");
+      }
 
-    if (result.error) {
-      console.error(result.error);
+      const { clientSecret } = await response.json();
+      
+      const { error } = await stripe.confirmPayment({
+        elements: await stripe.elements({
+          clientSecret
+        }),
+        confirmParams: {
+          return_url: window.location.origin + "/thank-you",
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      toast({
+        variant: "destructive",
+        title: "Payment Error",
+        description: error.message || "Failed to process payment",
+      });
     }
   };
 
