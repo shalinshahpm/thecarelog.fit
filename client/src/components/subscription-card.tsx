@@ -50,9 +50,13 @@ export default function SubscriptionCard() {
         throw new Error("Invalid payment session");
       }
 
-      const { error: stripeError } = await stripe.redirectToCheckout({
+      const result = await stripe.redirectToCheckout({
         sessionId: clientSecret
       });
+      
+      if (result.error) {
+        throw result.error;
+      }
 
       if (stripeError) {
         throw stripeError;
