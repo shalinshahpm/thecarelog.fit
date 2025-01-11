@@ -13,54 +13,18 @@ import { useToast } from "@/hooks/use-toast";
 export default function SubscriptionCard() {
   const { toast } = useToast();
 
-  const handleDonation = async () => {
+  const handleDonation = () => {
     try {
-      // Get the Stripe public key from environment variables
-      const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-      console.log("Stripe public key:", publicKey ? "Found" : "Missing");
-
-      if (!publicKey || publicKey === "pk_test_your_publishable_key") {
-        console.error("Invalid Stripe public key configuration");
-        toast({
-          variant: "destructive",
-          title: "Configuration Error",
-          description: "Payment system is temporarily unavailable. Please try again later.",
-        });
-        return;
-      }
-
-      const stripe = await loadStripe(publicKey);
-      if (!stripe) {
-        throw new Error("Failed to initialize payment system");
-      }
-
-      const response = await fetch("/api/create-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+      // Replace this with your Stripe checkout URL from your buy button
+      window.location.href = "https://buy.stripe.com/test_yourCheckoutLink";
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      toast({
+        variant: "destructive",
+        title: "Payment Error",
+        description: "Failed to redirect to payment page. Please try again later.",
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Payment request failed");
-      }
-
-      const { clientSecret } = await response.json();
-      if (!clientSecret) {
-        throw new Error("Invalid payment session");
-      }
-
-      const result = await stripe.redirectToCheckout({
-        sessionId: clientSecret
-      });
-      
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (stripeError) {
-        throw stripeError;
-      }
+    }
     } catch (error: any) {
       console.error("Payment error:", error);
       toast({
