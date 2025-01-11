@@ -4,6 +4,7 @@ import { setupAuth } from "./auth";
 import { db } from "@db";
 import { healthMetrics, users } from "@db/schema";
 import { eq } from "drizzle-orm";
+import Stripe from "stripe";
 
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
@@ -62,29 +63,45 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       res.status(500).send("Failed to update subscription");
     }
+  });
 
   // Stripe payment endpoint
   app.post("/api/create-payment", async (req, res) => {
     if (!process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).send("Stripe key not configured");
+      console.error("Stripe secret key not configured");
+      return res.status(500).send("Payment service is temporarily unavailable");
     }
 
-    const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
     try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 500, // $5.00
-        currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-        },
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: '2023-10-16'
       });
 
-      res.json({ clientSecret: paymentIntent.client_secret });
-    } catch (error) {
-      res.status(500).send("Payment failed");
-    }
-  });
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Health Manager Donation',
+                description: 'Thank you for supporting Health Manager!',
+              },
+              unit_amount: 500, // $5.00
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.get('host')}/dashboard?donation=success`,
+        cancel_url: `${req.protocol}://${req.get('host')}/dashboard`,
+      });
 
+      res.json({ clientSecret: session.id });
+    } catch (error: any) {
+      console.error('Stripe error:', error);
+      res.status(500).send("Payment processing failed. Please try again later.");
+    }
   });
 
   const httpServer = createServer(app);

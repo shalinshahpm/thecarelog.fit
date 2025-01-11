@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,46 +15,51 @@ export default function SubscriptionCard() {
 
   const handleDonation = async () => {
     try {
+      // Get the Stripe public key from environment variables
       const publicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
       if (!publicKey) {
-        console.error("Missing Stripe public key:", import.meta.env);
-        throw new Error("Stripe public key is not configured");
+        toast({
+          variant: "destructive",
+          title: "Configuration Error",
+          description: "Payment system is temporarily unavailable. Please try again later.",
+        });
+        return;
       }
-      
+
       const stripe = await loadStripe(publicKey);
       if (!stripe) {
-        throw new Error("Failed to initialize Stripe");
+        throw new Error("Failed to initialize payment system");
       }
 
       const response = await fetch("/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error("Payment request failed");
+        const errorText = await response.text();
+        throw new Error(errorText || "Payment request failed");
       }
 
       const { clientSecret } = await response.json();
-      
-      const { error } = await stripe.confirmPayment({
-        elements: await stripe.elements({
-          clientSecret
-        }),
-        confirmParams: {
-          return_url: window.location.origin + "/thank-you",
-        },
+      if (!clientSecret) {
+        throw new Error("Invalid payment session");
+      }
+
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId: clientSecret
       });
 
-      if (error) {
-        throw error;
+      if (stripeError) {
+        throw stripeError;
       }
     } catch (error: any) {
       console.error("Payment error:", error);
       toast({
         variant: "destructive",
         title: "Payment Error",
-        description: error.message || "Failed to process payment",
+        description: error.message || "Failed to process payment. Please try again later.",
       });
     }
   };
