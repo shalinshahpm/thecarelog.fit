@@ -25,30 +25,18 @@ export default function SubscriptionCard() {
       });
     }
   };
-        variant: "destructive",
-        title: "Payment Error",
-        description: error.message || "Failed to process payment. Please try again later.",
-      });
-    }
-  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2 justify-center">
-          Support the App <span className="text-red-500">❤️</span>
-        </CardTitle>
-        <CardDescription className="text-lg text-center">
-          If you find this health tracker helpful, consider supporting its development.
-          Your contributions help keep the app running and improve features for everyone!
-        </CardDescription>
+        <CardTitle>Support Development</CardTitle>
+        <CardDescription>Help us keep improving the app</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-xl font-medium text-center">How You Can Support:</h3>
-          <ul className="list-disc list-inside space-y-2 text-lg">
-            <li>Donate any amount you like</li>
-            <li>Your generosity fuels better updates and support for more users</li>
+      <CardContent>
+        <div className="space-y-4 mb-4">
+          <ul className="list-disc pl-4 space-y-2">
+            <li>Access to upcoming features</li>
+            <li>Support independent development</li>
             <li>Help us maintain and improve the app for the community</li>
           </ul>
         </div>
