@@ -15,8 +15,7 @@ export default function SubscriptionCard() {
 
   const handleDonation = () => {
     try {
-      // Replace this with your Stripe checkout URL from your buy button
-      window.location.href = "https://buy.stripe.com/test_yourCheckoutLink";
+      window.location.href = "https://buy.stripe.com/00g14ubYP1EL5YQaEG";
     } catch (error: any) {
       console.error("Payment error:", error);
       toast({
@@ -25,9 +24,7 @@ export default function SubscriptionCard() {
         description: "Failed to redirect to payment page. Please try again later.",
       });
     }
-    } catch (error: any) {
-      console.error("Payment error:", error);
-      toast({
+  };
         variant: "destructive",
         title: "Payment Error",
         description: error.message || "Failed to process payment. Please try again later.",
