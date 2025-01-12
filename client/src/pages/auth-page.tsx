@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const { login, register } = useUser();
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +23,7 @@ export default function AuthPage() {
       } else {
         await register({ username, password, email });
       }
+      setLocation("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
