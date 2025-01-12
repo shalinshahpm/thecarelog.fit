@@ -17,7 +17,10 @@ export function registerRoutes(app: Express): Server {
 
     try {
       console.log('Received health note data:', req.body); // Debug log
-      const result = insertHealthNoteSchema.safeParse(req.body);
+      const result = insertHealthNoteSchema.safeParse({
+        ...req.body,
+        userId: req.user!.id
+      });
       if (!result.success) {
         console.error('Validation error:', result.error.issues); // Debug log
         return res
