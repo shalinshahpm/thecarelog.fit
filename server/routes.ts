@@ -2,8 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthMetrics, users } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { healthMetrics, users, medications, medicationLogs } from "@db/schema";
+import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
 
 export function registerRoutes(app: Express): Server {
@@ -22,6 +22,18 @@ export function registerRoutes(app: Express): Server {
           userId: req.user!.id
         })
         .returning();
+
+      // Update user's streak
+      const today = new Date();
+      const user = req.user!;
+      if (!user.lastActivityDate || isNewDay(user.lastActivityDate, today)) {
+        await db.update(users)
+          .set({ 
+            currentStreak: user.currentStreak + 1,
+            lastActivityDate: today
+          })
+          .where(eq(users.id, user.id));
+      }
 
       res.json(newMetric[0]);
     } catch (error) {
@@ -46,6 +58,92 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Medication endpoints
+  app.get("/api/medications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const userMedications = await db.select()
+        .from(medications)
+        .where(eq(medications.userId, req.user!.id))
+        .orderBy(medications.name);
+
+      res.json(userMedications);
+    } catch (error) {
+      res.status(500).send("Failed to fetch medications");
+    }
+  });
+
+  app.post("/api/medications", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const newMedication = await db.insert(medications)
+        .values({
+          ...req.body,
+          userId: req.user!.id
+        })
+        .returning();
+
+      res.json(newMedication[0]);
+    } catch (error) {
+      res.status(500).send("Failed to add medication");
+    }
+  });
+
+  app.post("/api/medications/log", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const newLog = await db.insert(medicationLogs)
+        .values({
+          ...req.body,
+          userId: req.user!.id,
+          takenAt: new Date()
+        })
+        .returning();
+
+      // Update user's streak
+      const today = new Date();
+      const user = req.user!;
+      if (!user.lastActivityDate || isNewDay(user.lastActivityDate, today)) {
+        await db.update(users)
+          .set({ 
+            currentStreak: user.currentStreak + 1,
+            lastActivityDate: today
+          })
+          .where(eq(users.id, user.id));
+      }
+
+      res.json(newLog[0]);
+    } catch (error) {
+      res.status(500).send("Failed to log medication");
+    }
+  });
+
+  app.get("/api/medications/logs", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const logs = await db.select()
+        .from(medicationLogs)
+        .where(eq(medicationLogs.userId, req.user!.id))
+        .orderBy(desc(medicationLogs.takenAt));
+
+      res.json(logs);
+    } catch (error) {
+      res.status(500).send("Failed to fetch medication logs");
+    }
+  });
+
   // Update subscription status
   app.post("/api/subscribe", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -64,6 +162,13 @@ export function registerRoutes(app: Express): Server {
       res.status(500).send("Failed to update subscription");
     }
   });
+
+  // Helper function to check if two dates are different days
+  function isNewDay(date1: Date, date2: Date): boolean {
+    return date1.getDate() !== date2.getDate() ||
+           date1.getMonth() !== date2.getMonth() ||
+           date1.getFullYear() !== date2.getFullYear();
+  }
 
   // Stripe payment endpoint
   app.post("/api/create-payment", async (req, res) => {
