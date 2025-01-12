@@ -144,7 +144,11 @@ export const insertMedicationSchema = createInsertSchema(medications);
 export const selectMedicationSchema = createSelectSchema(medications);
 export const insertMedicationLogSchema = createInsertSchema(medicationLogs);
 export const selectMedicationLogSchema = createSelectSchema(medicationLogs);
-export const insertHealthNoteSchema = createInsertSchema(healthNotes);
+export const insertHealthNoteSchema = createInsertSchema(healthNotes, {
+  category: z.enum(["Diet Tips", "Next Visit Questions", "Test Results"]),
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+});
 export const selectHealthNoteSchema = createSelectSchema(healthNotes);
 export const insertSavedSearchSchema = createInsertSchema(savedSearches);
 export const selectSavedSearchSchema = createSelectSchema(savedSearches);

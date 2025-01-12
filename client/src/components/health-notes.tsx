@@ -20,14 +20,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, FileText } from "lucide-react";
+import type { Category } from "@/lib/types";
 
-const CATEGORIES = [
-  "Diet Tips",
-  "Next Visit Questions",
-  "Test Results",
-] as const;
-
-type Category = typeof CATEGORIES[number];
+const CATEGORIES = ["Diet Tips", "Next Visit Questions", "Test Results"] as const;
 
 export default function HealthNotes() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -35,7 +30,6 @@ export default function HealthNotes() {
   const [newNote, setNewNote] = useState({
     title: "",
     content: "",
-    category: "",
   });
 
   const { notes, addNote } = useHealthNotes();
@@ -54,11 +48,15 @@ export default function HealthNotes() {
 
     try {
       await addNote({
-        ...newNote,
+        title: newNote.title,
+        content: newNote.content,
         category: selectedCategory,
       });
-      setNewNote({ title: "", content: "", category: "" });
+
+      setNewNote({ title: "", content: "" });
+      setSelectedCategory(null);
       setShowAddForm(false);
+
       toast({
         title: "Success",
         description: "Note added successfully",
@@ -67,7 +65,7 @@ export default function HealthNotes() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to add note",
       });
     }
   };
@@ -103,6 +101,7 @@ export default function HealthNotes() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
                 <Select
+                  value={selectedCategory ?? undefined}
                   onValueChange={(value) => setSelectedCategory(value as Category)}
                 >
                   <SelectTrigger>
@@ -177,7 +176,6 @@ export default function HealthNotes() {
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => {
-                            // TODO: Implement edit functionality
                             toast({
                               title: "Coming Soon",
                               description: "Edit functionality will be added soon",
@@ -191,7 +189,7 @@ export default function HealthNotes() {
                         {note.content}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(note.createdAt).toLocaleString()}
+                        {note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Just now'}
                       </p>
                     </div>
                   ))}

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthMetrics, users, medications, medicationLogs, healthNotes } from "@db/schema";
+import { healthMetrics, users, medications, medicationLogs, healthNotes, insertHealthNoteSchema } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
 
@@ -26,10 +26,11 @@ export function registerRoutes(app: Express): Server {
       // Update user's streak
       const today = new Date();
       const user = req.user!;
+      const streak = user.currentStreak || 0;
       if (!user.lastActivityDate || isNewDay(user.lastActivityDate, today)) {
         await db.update(users)
           .set({ 
-            currentStreak: user.currentStreak + 1,
+            currentStreak: streak + 1,
             lastActivityDate: today
           })
           .where(eq(users.id, user.id));
@@ -82,30 +83,41 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
+      const result = insertHealthNoteSchema.safeParse(req.body);
+      if (!result.success) {
+        return res
+          .status(400)
+          .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+      }
+
+      const { category, title, content } = result.data;
       const now = new Date();
       const newNote = await db.insert(healthNotes)
         .values({
-          ...req.body,
           userId: req.user!.id,
+          category,
+          title,
+          content,
           createdAt: now,
-          updatedAt: now,
+          updatedAt: now
         })
         .returning();
 
       // Update user's streak
-      const today = now;
       const user = req.user!;
-      if (!user.lastActivityDate || isNewDay(user.lastActivityDate, today)) {
+      const streak = user.currentStreak || 0;
+      if (!user.lastActivityDate || isNewDay(user.lastActivityDate, now)) {
         await db.update(users)
           .set({ 
-            currentStreak: user.currentStreak + 1,
-            lastActivityDate: today
+            currentStreak: streak + 1,
+            lastActivityDate: now
           })
           .where(eq(users.id, user.id));
       }
 
       res.json(newNote[0]);
     } catch (error) {
+      console.error('Failed to create health note:', error);
       res.status(500).send("Failed to create health note");
     }
   });
@@ -251,9 +263,11 @@ export function registerRoutes(app: Express): Server {
 
   // Helper function to check if two dates are different days
   function isNewDay(date1: Date, date2: Date): boolean {
-    return date1.getDate() !== date2.getDate() ||
-           date1.getMonth() !== date2.getMonth() ||
-           date1.getFullYear() !== date2.getFullYear();
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    return d1.getDate() !== d2.getDate() ||
+           d1.getMonth() !== d2.getMonth() ||
+           d1.getFullYear() !== d2.getFullYear();
   }
 
   // Stripe payment endpoint
