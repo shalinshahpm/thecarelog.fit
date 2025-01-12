@@ -9,7 +9,8 @@ export function useHealthNotes() {
   });
 
   const addNote = useMutation({
-    mutationFn: async (newNote: Omit<NewHealthNote, "userId" | "createdAt" | "updatedAt">) => {
+    mutationFn: async (newNote: { category: string; title: string; content: string }) => {
+      console.log('Sending note data:', newNote); // Debug log
       const res = await fetch("/api/health-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -18,7 +19,9 @@ export function useHealthNotes() {
       });
 
       if (!res.ok) {
-        throw new Error(await res.text());
+        const error = await res.text();
+        console.error('Failed to add note:', error); // Debug log
+        throw new Error(error);
       }
 
       return res.json();
