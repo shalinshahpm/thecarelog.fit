@@ -2,11 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthMetrics, users, medications, medicationLogs, healthNotes, insertHealthNoteSchema } from "@db/schema";
+import { healthMetrics, users, medications, medicationLogs, healthNotes, insertHealthNoteSchema, loginUserSchema } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
 
 export function registerRoutes(app: Express): Server {
+  // Initialize authentication
   setupAuth(app);
 
   // Health metrics endpoints
