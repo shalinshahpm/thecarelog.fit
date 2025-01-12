@@ -31,30 +31,50 @@ export default function HealthNotes() {
     title: "",
     content: "",
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { notes, addNote } = useHealthNotes();
   const { toast } = useToast();
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!selectedCategory) {
+      errors.category = "Category is required";
+    }
+    if (!newNote.title.trim()) {
+      errors.title = "Title is required";
+    }
+    if (!newNote.content.trim()) {
+      errors.content = "Content is required";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCategory) {
+
+    if (!validateForm()) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Please select a category",
+        title: "Validation Error",
+        description: "Please fill in all required fields",
       });
       return;
     }
 
     try {
       await addNote({
-        title: newNote.title,
-        content: newNote.content,
-        category: selectedCategory,
+        title: newNote.title.trim(),
+        content: newNote.content.trim(),
+        category: selectedCategory as Category,
       });
 
       setNewNote({ title: "", content: "" });
       setSelectedCategory(null);
+      setFormErrors({});
       setShowAddForm(false);
 
       toast({
@@ -99,12 +119,17 @@ export default function HealthNotes() {
           <CardContent>
             <form onSubmit={handleAddNote} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
+                <label className="text-sm font-medium">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <Select
                   value={selectedCategory ?? undefined}
-                  onValueChange={(value) => setSelectedCategory(value as Category)}
+                  onValueChange={(value) => {
+                    setSelectedCategory(value as Category);
+                    setFormErrors((prev) => ({ ...prev, category: "" }));
+                  }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={formErrors.category ? "border-red-500" : ""}>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -115,34 +140,53 @@ export default function HealthNotes() {
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.category && (
+                  <p className="text-sm text-red-500">{formErrors.category}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
+                <label className="text-sm font-medium">
+                  Title <span className="text-red-500">*</span>
+                </label>
                 <Input
                   value={newNote.title}
-                  onChange={(e) =>
-                    setNewNote({ ...newNote, title: e.target.value })
-                  }
-                  required
+                  onChange={(e) => {
+                    setNewNote({ ...newNote, title: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, title: "" }));
+                  }}
+                  className={formErrors.title ? "border-red-500" : ""}
                 />
+                {formErrors.title && (
+                  <p className="text-sm text-red-500">{formErrors.title}</p>
+                )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Content</label>
+                <label className="text-sm font-medium">
+                  Content <span className="text-red-500">*</span>
+                </label>
                 <Textarea
                   value={newNote.content}
-                  onChange={(e) =>
-                    setNewNote({ ...newNote, content: e.target.value })
-                  }
-                  required
-                  className="h-32"
+                  onChange={(e) => {
+                    setNewNote({ ...newNote, content: e.target.value });
+                    setFormErrors((prev) => ({ ...prev, content: "" }));
+                  }}
+                  className={`h-32 ${formErrors.content ? "border-red-500" : ""}`}
                 />
+                {formErrors.content && (
+                  <p className="text-sm text-red-500">{formErrors.content}</p>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button type="submit">Save Note</Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewNote({ title: "", content: "" });
+                    setSelectedCategory(null);
+                    setFormErrors({});
+                  }}
                 >
                   Cancel
                 </Button>
