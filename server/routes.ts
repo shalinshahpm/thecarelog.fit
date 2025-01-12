@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthMetrics, users, medications, medicationLogs } from "@db/schema";
+import { healthMetrics, users, medications, medicationLogs, healthNotes } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
 import Stripe from "stripe";
 
@@ -55,6 +55,92 @@ export function registerRoutes(app: Express): Server {
       res.json(metrics);
     } catch (error) {
       res.status(500).send("Failed to fetch health metrics");
+    }
+  });
+
+  // Health notes endpoints
+  app.get("/api/health-notes", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const notes = await db.select()
+        .from(healthNotes)
+        .where(eq(healthNotes.userId, req.user!.id))
+        .orderBy(desc(healthNotes.updatedAt));
+
+      res.json(notes);
+    } catch (error) {
+      res.status(500).send("Failed to fetch health notes");
+    }
+  });
+
+  app.post("/api/health-notes", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const now = new Date();
+      const newNote = await db.insert(healthNotes)
+        .values({
+          ...req.body,
+          userId: req.user!.id,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
+      // Update user's streak
+      const today = now;
+      const user = req.user!;
+      if (!user.lastActivityDate || isNewDay(user.lastActivityDate, today)) {
+        await db.update(users)
+          .set({ 
+            currentStreak: user.currentStreak + 1,
+            lastActivityDate: today
+          })
+          .where(eq(users.id, user.id));
+      }
+
+      res.json(newNote[0]);
+    } catch (error) {
+      res.status(500).send("Failed to create health note");
+    }
+  });
+
+  app.put("/api/health-notes/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authenticated");
+    }
+
+    try {
+      const noteId = parseInt(req.params.id);
+      const [existingNote] = await db.select()
+        .from(healthNotes)
+        .where(eq(healthNotes.id, noteId))
+        .limit(1);
+
+      if (!existingNote) {
+        return res.status(404).send("Note not found");
+      }
+
+      if (existingNote.userId !== req.user!.id) {
+        return res.status(403).send("Not authorized to update this note");
+      }
+
+      const [updatedNote] = await db.update(healthNotes)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(eq(healthNotes.id, noteId))
+        .returning();
+
+      res.json(updatedNote);
+    } catch (error) {
+      res.status(500).send("Failed to update health note");
     }
   });
 

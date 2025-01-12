@@ -3,6 +3,7 @@ import { useHealthMetrics } from "@/hooks/use-health-metrics";
 import HealthForm from "@/components/health-form";
 import MetricsChart from "@/components/metrics-chart";
 import MedicationTracker from "@/components/medication-tracker";
+import HealthNotes from "@/components/health-notes";
 import SubscriptionCard from "@/components/subscription-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,7 +22,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold">Health Manager</h1>
-            {user.currentStreak > 0 && (
+            {user?.currentStreak > 0 && (
               <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
                 <Flame className="h-5 w-5 text-orange-500" />
                 <span className="font-medium">{user.currentStreak} Day Streak!</span>
@@ -53,6 +54,8 @@ export default function Dashboard() {
 
         <MedicationTracker />
 
+        <HealthNotes />
+
         <Card>
           <CardContent className="p-6">
             <h2 className="text-2xl font-semibold mb-4">Recent Entries</h2>
@@ -83,7 +86,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {!user.isPremium && <SubscriptionCard />}
+        {user?.isPremium === false && <SubscriptionCard />}
       </main>
     </div>
   );
