@@ -46,10 +46,28 @@ export default function HealthNotes() {
       return;
     }
 
+    if (!newNote.title.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Title is required",
+      });
+      return;
+    }
+
+    if (!newNote.content.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Content is required",
+      });
+      return;
+    }
+
     try {
       await addNote({
-        title: newNote.title,
-        content: newNote.content,
+        title: newNote.title.trim(),
+        content: newNote.content.trim(),
         category: selectedCategory,
       });
 
@@ -99,7 +117,7 @@ export default function HealthNotes() {
           <CardContent>
             <form onSubmit={handleAddNote} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
+                <label className="text-sm font-medium">Category *</label>
                 <Select
                   value={selectedCategory ?? undefined}
                   onValueChange={(value) => setSelectedCategory(value as Category)}
@@ -117,23 +135,23 @@ export default function HealthNotes() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
+                <label className="text-sm font-medium">Title *</label>
                 <Input
                   value={newNote.title}
                   onChange={(e) =>
                     setNewNote({ ...newNote, title: e.target.value })
                   }
-                  required
+                  placeholder="Enter a title for your note"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Content</label>
+                <label className="text-sm font-medium">Content *</label>
                 <Textarea
                   value={newNote.content}
                   onChange={(e) =>
                     setNewNote({ ...newNote, content: e.target.value })
                   }
-                  required
+                  placeholder="Write your note here..."
                   className="h-32"
                 />
               </div>
@@ -142,7 +160,11 @@ export default function HealthNotes() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowAddForm(false)}
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewNote({ title: "", content: "" });
+                    setSelectedCategory(null);
+                  }}
                 >
                   Cancel
                 </Button>
