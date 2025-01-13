@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function ActivityTracker() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -15,7 +17,7 @@ export default function ActivityTracker() {
     type: "",
     value: "",
     duration: "",
-    notes: "",
+    intensity: "moderate",
   });
   
   const { logs, addLog } = useActivityLogs();
@@ -27,10 +29,10 @@ export default function ActivityTracker() {
       await addLog({
         type: newActivity.type,
         value: Number(newActivity.value),
-        duration: newActivity.duration ? Number(newActivity.duration) : undefined,
-        notes: newActivity.notes || undefined,
+        duration: Number(newActivity.duration),
+        intensity: newActivity.intensity,
       });
-      setNewActivity({ type: "", value: "", duration: "", notes: "" });
+      setNewActivity({ type: "", value: "", duration: "", intensity: "moderate" });
       setShowAddForm(false);
       toast({
         title: "Success",
@@ -72,28 +74,43 @@ export default function ActivityTracker() {
                 <SelectValue placeholder="Select activity type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="steps">Steps</SelectItem>
                 <SelectItem value="walking">Walking</SelectItem>
-                <SelectItem value="exercise">Exercise</SelectItem>
+                <SelectItem value="running">Running</SelectItem>
+                <SelectItem value="cycling">Cycling</SelectItem>
+                <SelectItem value="yoga">Yoga</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              type="number"
-              placeholder="Value (steps/distance/minutes)"
-              value={newActivity.value}
-              onChange={(e) => setNewActivity({ ...newActivity, value: e.target.value })}
-            />
+
             <Input
               type="number"
               placeholder="Duration (minutes)"
               value={newActivity.duration}
               onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })}
             />
-            <Input
-              placeholder="Notes"
-              value={newActivity.notes}
-              onChange={(e) => setNewActivity({ ...newActivity, notes: e.target.value })}
-            />
+
+            <div className="space-y-2">
+              <Label>Intensity Level</Label>
+              <RadioGroup
+                value={newActivity.intensity}
+                onValueChange={(value) => setNewActivity({ ...newActivity, intensity: value })}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="light" id="light" />
+                  <Label htmlFor="light">Light</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="moderate" id="moderate" />
+                  <Label htmlFor="moderate">Moderate</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="vigorous" id="vigorous" />
+                  <Label htmlFor="vigorous">Vigorous</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
             <Button type="submit">Save Activity</Button>
           </form>
         )}
@@ -107,10 +124,13 @@ export default function ActivityTracker() {
                   <div key={log.id} className="p-3 border rounded-lg">
                     <div className="flex justify-between">
                       <span className="font-medium capitalize">{log.type}</span>
-                      <span>{log.value} {log.type === 'steps' ? 'steps' : log.type === 'walking' ? 'meters' : 'minutes'}</span>
+                      <span>{log.duration} minutes</span>
                     </div>
-                    {log.duration && <div>Duration: {log.duration} minutes</div>}
-                    {log.notes && <div className="text-sm text-muted-foreground">{log.notes}</div>}
+                    {log.intensity && (
+                      <div className="text-sm text-muted-foreground capitalize">
+                        Intensity: {log.intensity}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

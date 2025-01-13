@@ -153,9 +153,10 @@ export const selectHealthNoteSchema = createSelectSchema(healthNotes);
 export const insertSavedSearchSchema = createInsertSchema(savedSearches);
 export const selectSavedSearchSchema = createSelectSchema(savedSearches);
 export const insertActivityLogSchema = createInsertSchema(activityLogs, {
-  type: z.enum(["steps", "walking", "exercise"]),
+  type: z.enum(["walking", "running", "cycling", "yoga", "other"]),
   value: z.number().min(0, "Value must be positive"),
-  duration: z.number().min(0, "Duration must be positive").optional(),
+  duration: z.number().min(0, "Duration must be positive"),
+  intensity: z.enum(["light", "moderate", "vigorous"]).optional(),
 });
 export const selectActivityLogSchema = createSelectSchema(activityLogs);
 
