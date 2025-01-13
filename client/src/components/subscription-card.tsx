@@ -30,8 +30,8 @@ export default function SubscriptionCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Built for my mom, shared to help yours ❤️</CardTitle>
-        <CardDescription>This app was created to make managing health easier for my mom—and now it's here to help others too.</CardDescription>
+        <CardTitle>Built for my parents, shared to help yours ❤️</CardTitle>
+        <CardDescription>This app was created to make managing health easier for my parents—and now it's here to help others too.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mb-4">
