@@ -25,23 +25,18 @@ export default function AuthPage() {
       }
 
       if (isLogin) {
-        const result = await login({ username, password });
-        if (!result.ok) {
-          throw new Error(result.message || "Invalid credentials");
-        }
+        await login({ username, password });
       } else {
-        const result = await register({ username, password, email });
-        if (!result.ok) {
-          throw new Error(result.message || "Registration failed - user may already exist");
-        }
+        await register({ username, password, email });
       }
       
       setLocation("/dashboard");
     } catch (error: any) {
+      const errorMessage = error?.response?.data || error.message || "An unexpected error occurred";
       toast({
         variant: "destructive",
         title: isLogin ? "Login Failed" : "Registration Failed",
-        description: error.message,
+        description: errorMessage,
       });
     }
   };
