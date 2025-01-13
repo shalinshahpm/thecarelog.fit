@@ -2,6 +2,8 @@
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -18,85 +20,99 @@ type Props = {
 };
 
 export default function MetricsChart({ data }: Props) {
-  const [timeRange, setTimeRange] = useState("week");
+  const [chartType, setChartType] = useState("line");
   
-  const filterData = () => {
-    const now = new Date();
-    const ranges = {
-      day: 1,
-      week: 7,
-      month: 30,
-      year: 365
+  const chartData = data
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((metric) => ({
+      date: new Date(metric.date).toLocaleDateString(),
+      bloodSugar: metric.bloodSugar !== null ? Number(metric.bloodSugar) : null,
+      systolic: metric.bloodPressureSystolic !== null ? Number(metric.bloodPressureSystolic) : null,
+      diastolic: metric.bloodPressureDiastolic !== null ? Number(metric.bloodPressureDiastolic) : null
+    }));
+
+  const renderChart = () => {
+    const commonProps = {
+      data: chartData,
+      margin: { top: 5, right: 30, left: 20, bottom: 80 },
     };
-    const daysAgo = ranges[timeRange as keyof typeof ranges];
-    const cutoff = new Date(now.setDate(now.getDate() - daysAgo));
-    return data
-      .filter(metric => new Date(metric.date) >= cutoff)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  };
 
-  const chartData = filterData().map((metric) => ({
-    date: new Date(metric.date).toLocaleDateString(),
-    bloodSugar: metric.bloodSugar !== null ? Number(metric.bloodSugar) : null,
-    systolic: metric.bloodPressureSystolic !== null ? Number(metric.bloodPressureSystolic) : null,
-    diastolic: metric.bloodPressureDiastolic !== null ? Number(metric.bloodPressureDiastolic) : null
-  }));
-
-  console.log('Chart Data:', chartData); // For debugging
-
-  return (
-    <div className="space-y-4">
-      <Select value={timeRange} onValueChange={setTimeRange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select time range" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="day">Last 24 Hours</SelectItem>
-          <SelectItem value="week">Last Week</SelectItem>
-          <SelectItem value="month">Last Month</SelectItem>
-          <SelectItem value="year">Last Year</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={chartData}>
+    if (chartType === "bar") {
+      return (
+        <BarChart {...commonProps}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
             tick={{ fontSize: 12 }}
             height={60}
-            interval={0}
             angle={-45}
             textAnchor="end"
           />
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip />
           <Legend />
-          <Line
-            type="monotone"
-            dataKey="bloodSugar"
-            stroke="#ff4d4d"
-            name="Blood Sugar"
-            strokeWidth={2}
-            dot
-          />
-          <Line
-            type="monotone"
-            dataKey="systolic"
-            stroke="#2563eb"
-            name="Systolic BP"
-            strokeWidth={2}
-            dot
-          />
-          <Line
-            type="monotone"
-            dataKey="diastolic"
-            stroke="#16a34a"
-            name="Diastolic BP"
-            strokeWidth={2}
-            dot
-          />
-        </LineChart>
+          <Bar dataKey="bloodSugar" fill="#ff4d4d" name="Blood Sugar" />
+          <Bar dataKey="systolic" fill="#2563eb" name="Systolic BP" />
+          <Bar dataKey="diastolic" fill="#16a34a" name="Diastolic BP" />
+        </BarChart>
+      );
+    }
+
+    return (
+      <LineChart {...commonProps}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 12 }}
+          height={60}
+          angle={-45}
+          textAnchor="end"
+        />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="bloodSugar"
+          stroke="#ff4d4d"
+          name="Blood Sugar"
+          strokeWidth={2}
+          dot
+        />
+        <Line
+          type="monotone"
+          dataKey="systolic"
+          stroke="#2563eb"
+          name="Systolic BP"
+          strokeWidth={2}
+          dot
+        />
+        <Line
+          type="monotone"
+          dataKey="diastolic"
+          stroke="#16a34a"
+          name="Diastolic BP"
+          strokeWidth={2}
+          dot
+        />
+      </LineChart>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <Select value={chartType} onValueChange={setChartType}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select chart type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="line">Line Chart</SelectItem>
+          <SelectItem value="bar">Bar Chart</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <ResponsiveContainer width="100%" height={400}>
+        {renderChart()}
       </ResponsiveContainer>
     </div>
   );
