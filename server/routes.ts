@@ -186,6 +186,22 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/medications/logs", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const logs = await db.select()
+        .from(medicationLogs)
+        .where(eq(medicationLogs.userId, req.user!.id))
+        .orderBy(desc(medicationLogs.date));
+      res.json(logs);
+    } catch (error) {
+      console.error('Failed to fetch medication logs:', error);
+      res.status(500).json({ error: "Failed to fetch medication logs" });
+    }
+  });
+
   app.post("/api/medications/log", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });

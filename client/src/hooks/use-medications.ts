@@ -10,6 +10,11 @@ export function useMedications() {
 
   const { data: medicationLogs = [] } = useQuery<MedicationLog[]>({
     queryKey: ["/api/medications/logs"],
+    queryFn: async () => {
+      const res = await fetch("/api/medications/logs");
+      if (!res.ok) throw new Error("Failed to fetch medication logs");
+      return res.json();
+    }
   });
 
   const addMedication = useMutation({
