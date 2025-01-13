@@ -75,7 +75,7 @@ export default function MetricsChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="bloodSugar"
-            stroke="#8884d8"
+            stroke="#ff4d4d"
             name="Blood Sugar"
             strokeWidth={2}
             dot
@@ -83,7 +83,7 @@ export default function MetricsChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="systolic"
-            stroke="#82ca9d"
+            stroke="#2563eb"
             name="Systolic BP"
             strokeWidth={2}
             dot
@@ -91,7 +91,7 @@ export default function MetricsChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="diastolic"
-            stroke="#ffc658"
+            stroke="#16a34a"
             name="Diastolic BP"
             strokeWidth={2}
             dot
