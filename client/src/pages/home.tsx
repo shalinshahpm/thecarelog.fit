@@ -100,7 +100,7 @@ export default function Home() {
 
       <footer className="border-t p-8 mt-12">
         <div className="max-w-7xl mx-auto text-center text-lg text-muted-foreground">
-          <p>© 2024 The Care Log. All rights reserved.</p>
+          <p>© 2025 The Care Log. All rights reserved.</p>
         </div>
       </footer>
     </div>
