@@ -194,7 +194,7 @@ export function registerRoutes(app: Express): Server {
       const logs = await db.select()
         .from(medicationLogs)
         .where(eq(medicationLogs.userId, req.user!.id))
-        .orderBy(desc(medicationLogs.date));
+        .orderBy(desc(medicationLogs.takenAt));
       res.json(logs);
     } catch (error) {
       console.error('Failed to fetch medication logs:', error);
@@ -213,7 +213,7 @@ export function registerRoutes(app: Express): Server {
           userId: req.user!.id,
           medicationId,
           status,
-          date: new Date()
+          takenAt: new Date()
         })
         .returning();
       res.json(log);
