@@ -18,14 +18,15 @@ export function useHealthMetrics() {
       });
 
       if (!res.ok) {
-        throw new Error(await res.text());
+        const errorText = await res.text();
+        try {
+          const errorJson = JSON.parse(errorText);
+          throw new Error(errorJson.error || "Failed to save health metrics");
+        } catch {
+          throw new Error(errorText || "Failed to save health metrics");
+        }
       }
-
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return res.json();
-      }
-      throw new Error("Server returned invalid response format");
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/health-metrics"] });
