@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
+import Home from "@/pages/home";
 import { useUser } from "@/hooks/use-user";
 
 function Router() {
@@ -19,11 +20,12 @@ function Router() {
     );
   }
 
-  // If user is not authenticated, only show login/register routes
+  // If user is not authenticated, show landing page, login, and register routes
   if (!user) {
     return (
       <Switch>
-        <Route path="/" component={() => <AuthPage isLogin={true} />} />
+        <Route path="/" component={Home} />
+        <Route path="/login" component={() => <AuthPage isLogin={true} />} />
         <Route path="/register" component={() => <AuthPage isLogin={false} />} />
         <Route component={NotFound} />
       </Switch>
