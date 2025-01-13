@@ -15,8 +15,6 @@ export default function Dashboard() {
   const { user, logout } = useUser();
   const { metrics, isLoading } = useHealthMetrics();
 
-  const recentMetrics = metrics.slice(-7);
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b p-4">
@@ -48,7 +46,7 @@ export default function Dashboard() {
           <Card>
             <CardContent className="p-6">
               <h2 className="text-2xl font-semibold mb-4">Recent Trends</h2>
-              <MetricsChart data={recentMetrics} />
+              <MetricsChart data={metrics} />
             </CardContent>
           </Card>
         </div>
