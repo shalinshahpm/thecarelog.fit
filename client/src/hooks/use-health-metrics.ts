@@ -21,7 +21,11 @@ export function useHealthMetrics() {
         throw new Error(await res.text());
       }
 
-      return res.json();
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return res.json();
+      }
+      throw new Error("Server returned invalid response format");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/health-metrics"] });

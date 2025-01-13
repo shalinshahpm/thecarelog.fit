@@ -42,7 +42,7 @@ export function registerRoutes(app: Express): Server {
         .returning();
 
       console.log('Created new note:', newNote); // Debug log
-      res.json(newNote);
+      res.setHeader('Content-Type', 'application/json').json(newNote);
     } catch (error) {
       console.error('Failed to create health note:', error);
       res.status(500).send("Failed to create health note");
