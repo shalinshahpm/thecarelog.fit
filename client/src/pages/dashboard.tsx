@@ -64,9 +64,33 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-semibold">Export Data</h2>
               <div className="space-x-2">
-                <Button onClick={() => exportData('csv')}>Export CSV</Button>
-                <Button onClick={() => exportData('pdf')}>Export PDF</Button>
-                <Button onClick={() => shareWhatsApp()}>Share WhatsApp</Button>
+                <Button onClick={async () => {
+                  const response = await fetch('/api/export/csv');
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'health-metrics.csv';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}>Export CSV</Button>
+                <Button onClick={async () => {
+                  const response = await fetch('/api/export/pdf');
+                  const blob = await response.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'health-metrics.pdf';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }}>Export PDF</Button>
+                <Button onClick={() => {
+                  const text = "Check out my health metrics!";
+                  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                  window.open(url, '_blank');
+                }}>Share WhatsApp</Button>
               </div>
             </div>
           </CardContent>

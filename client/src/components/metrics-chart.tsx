@@ -25,18 +25,21 @@ export default function MetricsChart({ data }: Props) {
     const ranges = {
       day: 1,
       week: 7,
-      month: 30
+      month: 30,
+      year: 365
     };
     const daysAgo = ranges[timeRange as keyof typeof ranges];
     const cutoff = new Date(now.setDate(now.getDate() - daysAgo));
-    return data.filter(metric => new Date(metric.date) >= cutoff);
+    return data
+      .filter(metric => new Date(metric.date) >= cutoff)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
   const chartData = filterData().map((metric) => ({
     date: new Date(metric.date).toLocaleDateString(),
-    bloodSugar: metric.bloodSugar,
-    systolic: metric.bloodPressureSystolic,
-    diastolic: metric.bloodPressureDiastolic
+    bloodSugar: Number(metric.bloodSugar),
+    systolic: Number(metric.bloodPressureSystolic),
+    diastolic: Number(metric.bloodPressureDiastolic)
   }));
 
   return (
@@ -49,6 +52,7 @@ export default function MetricsChart({ data }: Props) {
           <SelectItem value="day">Last 24 Hours</SelectItem>
           <SelectItem value="week">Last Week</SelectItem>
           <SelectItem value="month">Last Month</SelectItem>
+          <SelectItem value="year">Last Year</SelectItem>
         </SelectContent>
       </Select>
 
@@ -57,21 +61,22 @@ export default function MetricsChart({ data }: Props) {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 14 }}
+            tick={{ fontSize: 12 }}
             height={60}
             interval={0}
             angle={-45}
             textAnchor="end"
           />
-          <YAxis tick={{ fontSize: 14 }} />
-          <Tooltip contentStyle={{ fontSize: 14 }} />
-          <Legend wrapperStyle={{ fontSize: 14 }} />
+          <YAxis tick={{ fontSize: 12 }} />
+          <Tooltip />
+          <Legend />
           <Line
             type="monotone"
             dataKey="bloodSugar"
             stroke="#8884d8"
             name="Blood Sugar"
             strokeWidth={2}
+            dot
           />
           <Line
             type="monotone"
@@ -79,6 +84,7 @@ export default function MetricsChart({ data }: Props) {
             stroke="#82ca9d"
             name="Systolic BP"
             strokeWidth={2}
+            dot
           />
           <Line
             type="monotone"
@@ -86,6 +92,7 @@ export default function MetricsChart({ data }: Props) {
             stroke="#ffc658"
             name="Diastolic BP"
             strokeWidth={2}
+            dot
           />
         </LineChart>
       </ResponsiveContainer>
