@@ -188,23 +188,65 @@ export function registerRoutes(app: Express): Server {
       const doc = new PDFDocument.default();
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=health-data.pdf');
 
       doc.pipe(res);
 
-      doc.fontSize(25).text('Health Metrics Report', 100, 100);
-
-      const metrics = await db.query.healthMetrics.findMany();
-
-      doc.fontSize(12);
+      // Title
+      doc.fontSize(25).text('Health Data Report', 100, 100);
+      
       let y = 150;
 
-      metrics.forEach(metric => {
-        doc.text(`Date: ${new Date(metric.date).toLocaleDateString()}`, 100, y);
-        doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`, 100, y + 20);
-        doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`, 100, y + 40);
-        y += 80;
+      // Health Metrics
+      const metrics = await db.query.healthMetrics.findMany({
+        where: eq(healthMetrics.userId, req.user!.id)
       });
+      
+      if (metrics.length > 0) {
+        doc.fontSize(16).text('Health Metrics', 100, y);
+        y += 30;
+        doc.fontSize(12);
+        metrics.forEach(metric => {
+          doc.text(`Date: ${new Date(metric.date).toLocaleDateString()}`, 100, y);
+          doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`, 100, y + 20);
+          doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`, 100, y + 40);
+          y += 80;
+        });
+      }
+
+      // Medications
+      const meds = await db.query.medications.findMany({
+        where: eq(medications.userId, req.user!.id)
+      });
+      
+      if (meds.length > 0) {
+        doc.fontSize(16).text('Medications', 100, y);
+        y += 30;
+        doc.fontSize(12);
+        meds.forEach(med => {
+          doc.text(`Name: ${med.name}`, 100, y);
+          doc.text(`Dosage: ${med.dosage || 'N/A'}`, 100, y + 20);
+          doc.text(`Frequency: ${med.frequency || 'N/A'}`, 100, y + 40);
+          y += 80;
+        });
+      }
+
+      // Health Notes
+      const notes = await db.query.healthNotes.findMany({
+        where: eq(healthNotes.userId, req.user!.id)
+      });
+      
+      if (notes.length > 0) {
+        doc.fontSize(16).text('Health Notes', 100, y);
+        y += 30;
+        doc.fontSize(12);
+        notes.forEach(note => {
+          doc.text(`Category: ${note.category}`, 100, y);
+          doc.text(`Title: ${note.title}`, 100, y + 20);
+          doc.text(`Content: ${note.content}`, 100, y + 40);
+          y += 80;
+        });
+      }
 
       doc.end();
     } catch (error) {
