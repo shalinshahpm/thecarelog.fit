@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
@@ -17,6 +18,15 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username || !password || (!isLogin && !email)) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all fields",
+      });
+      return;
+    }
+
     try {
       if (isLogin) {
         await login({ username, password });
@@ -28,7 +38,7 @@ export default function AuthPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "Authentication failed",
       });
     }
   };
@@ -37,8 +47,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">
-            {isLogin ? "Login" : "Register"}
+          <CardTitle className="text-3xl font-bold text-center mb-2">
+            {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -51,6 +61,7 @@ export default function AuthPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 className="text-lg p-6"
                 required
+                minLength={3}
               />
             </div>
             {!isLogin && (
@@ -73,6 +84,7 @@ export default function AuthPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="text-lg p-6"
                 required
+                minLength={6}
               />
             </div>
             <Button type="submit" className="w-full text-lg p-6">
@@ -82,7 +94,12 @@ export default function AuthPage() {
           <Button
             variant="ghost"
             className="w-full mt-4 text-lg"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setUsername("");
+              setPassword("");
+              setEmail("");
+            }}
           >
             {isLogin ? "Need an account? Register" : "Have an account? Login"}
           </Button>
