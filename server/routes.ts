@@ -166,10 +166,10 @@ export function registerRoutes(app: Express): Server {
         .from(healthMetrics)
         .where(eq(healthMetrics.userId, req.user!.id))
         .orderBy(desc(healthMetrics.date));
-      
+
       const csvContent = "Date,Blood Sugar,Blood Pressure Systolic,Blood Pressure Diastolic\n" +
         metrics.map(m => `${new Date(m.date).toLocaleDateString()},${m.bloodSugar},${m.bloodPressureSystolic},${m.bloodPressureDiastolic}`).join("\n");
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.csv');
       res.send(csvContent);
@@ -184,17 +184,29 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Not authenticated" });
     }
     try {
-      const metrics = await db.select()
-        .from(healthMetrics)
-        .where(eq(healthMetrics.userId, req.user!.id))
-        .orderBy(desc(healthMetrics.date));
-      
-      // Send PDF file
+      const PDFDocument = await import('pdfkit');
+      const doc = new PDFDocument.default();
+
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.pdf');
-      // Implementation of PDF generation would go here
-      // For now, sending a simple response
-      res.send("PDF generation to be implemented");
+
+      doc.pipe(res);
+
+      doc.fontSize(25).text('Health Metrics Report', 100, 100);
+
+      const metrics = await db.query.healthMetrics.findMany();
+
+      doc.fontSize(12);
+      let y = 150;
+
+      metrics.forEach(metric => {
+        doc.text(`Date: ${new Date(metric.date).toLocaleDateString()}`, 100, y);
+        doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`, 100, y + 20);
+        doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`, 100, y + 40);
+        y += 80;
+      });
+
+      doc.end();
     } catch (error) {
       console.error('Failed to export PDF:', error);
       res.status(500).json({ error: "Failed to export data" });

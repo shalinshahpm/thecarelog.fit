@@ -74,20 +74,41 @@ export default function Dashboard() {
                   document.body.removeChild(a);
                 }}>Export CSV</Button>
                 <Button onClick={async () => {
-                  const response = await fetch('/api/export/pdf');
-                  const blob = await response.blob();
-                  const url = window.URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'health-metrics.pdf';
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
+                  try {
+                    const response = await fetch('/api/export/pdf');
+                    if (!response.ok) throw new Error('Failed to generate PDF');
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'health-metrics.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('PDF export failed:', error);
+                  }
                 }}>Export PDF</Button>
-                <Button onClick={() => {
-                  const text = "Check out my health metrics!";
-                  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                  window.open(url, '_blank');
+                <Button onClick={async () => {
+                  try {
+                    const response = await fetch('/api/export/pdf');
+                    if (!response.ok) throw new Error('Failed to generate PDF');
+                    const blob = await response.blob();
+                    const file = new File([blob], 'health-metrics.pdf', { type: 'application/pdf' });
+                    if (navigator.share) {
+                      await navigator.share({
+                        files: [file],
+                        title: 'Health Metrics Report',
+                        text: 'Check out my health metrics!'
+                      });
+                    } else {
+                      const url = `https://wa.me/?text=${encodeURIComponent('Check out my health metrics!')}`;
+                      window.open(url, '_blank');
+                    }
+                  } catch (error) {
+                    console.error('Share failed:', error);
+                  }
                 }}>Share WhatsApp</Button>
               </div>
             </div>
