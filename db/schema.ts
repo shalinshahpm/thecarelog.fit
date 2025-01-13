@@ -135,14 +135,6 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
-// Activity log schemas
-export const insertActivityLogSchema = createInsertSchema(activityLogs, {
-  type: z.enum(["steps", "walking", "exercise"]),
-  value: z.number().min(0, "Value must be positive"),
-  duration: z.number().min(0, "Duration must be positive").optional(),
-});
-export const selectActivityLogSchema = createSelectSchema(activityLogs);
-
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
@@ -160,7 +152,11 @@ export const insertHealthNoteSchema = createInsertSchema(healthNotes, {
 export const selectHealthNoteSchema = createSelectSchema(healthNotes);
 export const insertSavedSearchSchema = createInsertSchema(savedSearches);
 export const selectSavedSearchSchema = createSelectSchema(savedSearches);
-export const insertActivityLogSchema = createInsertSchema(activityLogs);
+export const insertActivityLogSchema = createInsertSchema(activityLogs, {
+  type: z.enum(["steps", "walking", "exercise"]),
+  value: z.number().min(0, "Value must be positive"),
+  duration: z.number().min(0, "Duration must be positive").optional(),
+});
 export const selectActivityLogSchema = createSelectSchema(activityLogs);
 
 // Login schema that only requires username and password
