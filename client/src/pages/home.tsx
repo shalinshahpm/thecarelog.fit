@@ -2,12 +2,12 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Heart,
   Bell,
   TrendingUp,
   LineChart,
-  Clock,
-  Share2
+  Activity,
+  Users,
+  FolderHeart
 } from "lucide-react";
 
 export default function Home() {
@@ -37,9 +37,9 @@ export default function Home() {
           <Card>
             <CardContent className="p-6 text-center space-y-4">
               <LineChart className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Track Health Metrics</h3>
+              <h3 className="text-2xl font-semibold">Stay in Control of Your Health</h3>
               <p className="text-lg">
-                Monitor blood sugar and blood pressure with large, easy-to-read displays
+                Easily keep track of your blood sugar and blood pressure with clear, easy-to-read displays that simplify your daily routine.
               </p>
             </CardContent>
           </Card>
@@ -47,9 +47,9 @@ export default function Home() {
           <Card>
             <CardContent className="p-6 text-center space-y-4">
               <Bell className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Medication Reminders</h3>
+              <h3 className="text-2xl font-semibold">Never Forget a Dose</h3>
               <p className="text-lg">
-                Never miss important medications with timely reminders
+                Get peace of mind knowing you'll always take your medications on time with helpful reminders.
               </p>
             </CardContent>
           </Card>
@@ -57,9 +57,9 @@ export default function Home() {
           <Card>
             <CardContent className="p-6 text-center space-y-4">
               <TrendingUp className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Health Insights</h3>
+              <h3 className="text-2xl font-semibold">Understand Your Progress</h3>
               <p className="text-lg">
-                View your health trends with simple, clear charts
+                See how your health is improving over time with simple, clear visuals that make trends easy to understand.
               </p>
             </CardContent>
           </Card>
@@ -68,30 +68,30 @@ export default function Home() {
         <section className="grid md:grid-cols-3 gap-8">
           <Card>
             <CardContent className="p-6 text-center space-y-4">
-              <Clock className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Activity Tracking</h3>
+              <Activity className="w-12 h-12 text-primary mx-auto" />
+              <h3 className="text-2xl font-semibold">Feel More Active Every Day</h3>
               <p className="text-lg">
-                Keep track of daily activities and exercises
+                Stay motivated to move more by tracking your daily activities and exercises effortlessly.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6 text-center space-y-4">
-              <Share2 className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Easy Sharing</h3>
+              <Users className="w-12 h-12 text-primary mx-auto" />
+              <h3 className="text-2xl font-semibold">Support Your Care Team</h3>
               <p className="text-lg">
-                Share health reports with family and healthcare providers
+                Share updates and reports with family or your healthcare provider, so everyone stays on the same page.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6 text-center space-y-4">
-              <Heart className="w-12 h-12 text-primary mx-auto" />
-              <h3 className="text-2xl font-semibold">Health Notes</h3>
+              <FolderHeart className="w-12 h-12 text-primary mx-auto" />
+              <h3 className="text-2xl font-semibold">Keep Everything in One Place</h3>
               <p className="text-lg">
-                Store important health notes and doctor's recommendations
+                Have important notes and doctor's recommendations at your fingertips whenever you need them.
               </p>
             </CardContent>
           </Card>
