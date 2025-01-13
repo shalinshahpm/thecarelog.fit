@@ -16,7 +16,7 @@ export default function Home() {
       <header className="border-b p-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
-            Senior Health Manager
+            The Care Log
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8">
             Simple health tracking for you and your loved ones
@@ -100,7 +100,7 @@ export default function Home() {
 
       <footer className="border-t p-8 mt-12">
         <div className="max-w-7xl mx-auto text-center text-lg text-muted-foreground">
-          <p>© 2024 Senior Health Manager. All rights reserved.</p>
+          <p>© 2024 The Care Log. All rights reserved.</p>
         </div>
       </footer>
     </div>
