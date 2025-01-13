@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
@@ -7,40 +6,73 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+type AuthPageProps = {
+  isLogin?: boolean;
+};
+
+export default function AuthPage({ isLogin: defaultIsLogin }: AuthPageProps) {
+  const [isLogin, setIsLogin] = useState(defaultIsLogin ?? true);
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { login, register } = useUser();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
 
+  useEffect(() => {
+    setIsLogin(defaultIsLogin ?? true);
+  }, [defaultIsLogin]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
+      // Basic validation
       if (!username || !password || (!isLogin && !email)) {
-        throw new Error("Please fill in all fields");
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fill in all required fields",
+        });
+        return;
       }
 
       if (isLogin) {
-        const loginResult = await login({ username, password });
-        if (loginResult.ok) {
-          setLocation("/dashboard");
+        const result = await login({ username, password });
+        if (result.ok) {
+          setLocation("/");
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully logged in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: result.message || "Invalid credentials. Please try again or register for a new account.",
+          });
         }
       } else {
-        const registerResult = await register({ username, password, email });
-        if (registerResult.ok) {
-          setLocation("/dashboard");
+        const result = await register({ username, password, email });
+        if (result.ok) {
+          setLocation("/");
+          toast({
+            title: "Registration Successful",
+            description: "Your account has been created and you're now logged in.",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Registration Failed",
+            description: result.message || "Failed to create account. Please try again.",
+          });
         }
       }
     } catch (error: any) {
-      const errorMessage = error?.response?.data || error.message || "An unexpected error occurred";
       toast({
         variant: "destructive",
         title: isLogin ? "Login Failed" : "Registration Failed",
-        description: errorMessage,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
     }
   };
@@ -65,6 +97,7 @@ export default function AuthPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="text-lg p-6"
+                placeholder="Enter your username"
                 required
                 minLength={3}
               />
@@ -77,6 +110,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="text-lg p-6"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
@@ -88,12 +122,13 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="text-lg p-6"
+                placeholder="Enter your password"
                 required
                 minLength={6}
               />
             </div>
             <Button type="submit" className="w-full text-lg p-6">
-              {isLogin ? "Login" : "Register"}
+              {isLogin ? "Sign In" : "Create Account"}
             </Button>
           </form>
           <Button
@@ -101,12 +136,13 @@ export default function AuthPage() {
             className="w-full mt-4 text-lg"
             onClick={() => {
               setIsLogin(!isLogin);
+              setLocation(isLogin ? "/register" : "/");
               setUsername("");
               setPassword("");
               setEmail("");
             }}
           >
-            {isLogin ? "Need an account? Register" : "Have an account? Login"}
+            {isLogin ? "Need an account? Register" : "Have an account? Sign In"}
           </Button>
         </CardContent>
       </Card>
