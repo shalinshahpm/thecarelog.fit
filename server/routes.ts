@@ -2,10 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthNotes, insertHealthNoteSchema } from "@db/schema";
+import { healthNotes, insertHealthNoteSchema, healthMetrics, medications } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
-// Assuming medications schema is defined elsewhere, import it here.  Replace with your actual import.
-import { medications } from "@db/schema";
 
 
 export function registerRoutes(app: Express): Server {
