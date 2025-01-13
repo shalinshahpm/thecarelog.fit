@@ -7,7 +7,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { users, insertUserSchema, loginUserSchema, type User as SelectUser } from "@db/schema";
 import { db } from "@db";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
 const crypto = {
@@ -68,11 +68,11 @@ export function setupAuth(app: Express) {
           .limit(1);
 
         if (!user) {
-          return done(null, false, { message: "Incorrect username." });
+          return done(null, false, { message: "Incorrect username or password." });
         }
         const isMatch = await crypto.compare(password, user.password);
         if (!isMatch) {
-          return done(null, false, { message: "Incorrect password." });
+          return done(null, false, { message: "Incorrect username or password." });
         }
         return done(null, user);
       } catch (err) {
@@ -109,15 +109,20 @@ export function setupAuth(app: Express) {
 
       const { username, password, email } = result.data;
 
-      // Check if user already exists
+      // Check if username or email already exists
       const [existingUser] = await db
         .select()
         .from(users)
-        .where(eq(users.username, username))
+        .where(or(eq(users.username, username), eq(users.email, email)))
         .limit(1);
 
       if (existingUser) {
-        return res.status(400).send("Username already exists");
+        if (existingUser.username === username) {
+          return res.status(400).send("Username already exists");
+        }
+        if (existingUser.email === email) {
+          return res.status(400).send("Email already registered");
+        }
       }
 
       // Hash the password
@@ -130,6 +135,9 @@ export function setupAuth(app: Express) {
           username,
           password: hashedPassword,
           email,
+          createdAt: new Date(),
+          emailReminders: false,
+          isPremium: false,
         })
         .returning();
 
@@ -143,7 +151,11 @@ export function setupAuth(app: Express) {
           user: { id: newUser.id, username: newUser.username },
         });
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.code === '23505') { // PostgreSQL unique violation error
+        return res.status(400).send("Username or email already exists");
+      }
       next(error);
     }
   });
@@ -162,7 +174,7 @@ export function setupAuth(app: Express) {
       }
 
       if (!user) {
-        return res.status(400).send(info.message ?? "Login failed");
+        return res.status(400).send(info.message ?? "Invalid credentials");
       }
 
       req.logIn(user, (err) => {
