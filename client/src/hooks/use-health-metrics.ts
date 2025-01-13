@@ -6,6 +6,11 @@ export function useHealthMetrics() {
 
   const { data: metrics = [], isLoading } = useQuery<HealthMetric[]>({
     queryKey: ["/api/health-metrics"],
+    queryFn: async () => {
+      const res = await fetch("/api/health-metrics");
+      if (!res.ok) throw new Error("Failed to fetch health metrics");
+      return res.json();
+    }
   });
 
   const addMetric = useMutation({
