@@ -18,27 +18,30 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password || (!isLogin && !email)) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please fill in all fields",
-      });
-      return;
-    }
-
+    
     try {
-      if (isLogin) {
-        await login({ username, password });
-      } else {
-        await register({ username, password, email });
+      if (!username || !password || (!isLogin && !email)) {
+        throw new Error("Please fill in all fields");
       }
-      setLocation("/");
+
+      if (isLogin) {
+        const result = await login({ username, password });
+        if (!result.ok) {
+          throw new Error(result.message || "Invalid credentials");
+        }
+      } else {
+        const result = await register({ username, password, email });
+        if (!result.ok) {
+          throw new Error(result.message || "Registration failed - user may already exist");
+        }
+      }
+      
+      setLocation("/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Authentication failed",
+        title: isLogin ? "Login Failed" : "Registration Failed",
+        description: error.message,
       });
     }
   };
@@ -48,8 +51,11 @@ export default function AuthPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-3xl font-bold text-center mb-2">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? "Welcome Back" : "Create New Account"}
           </CardTitle>
+          <CardDescription className="text-center">
+            {isLogin ? "Sign in to access your dashboard" : "Register to get started"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
