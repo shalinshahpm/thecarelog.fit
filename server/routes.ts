@@ -162,16 +162,46 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Not authenticated" });
     }
     try {
-      const metrics = await db.select()
-        .from(healthMetrics)
-        .where(eq(healthMetrics.userId, req.user!.id))
-        .orderBy(desc(healthMetrics.date));
+      const [metricsData, medicationsData, medLogsData, notesData, activityData] = await Promise.all([
+        db.select().from(healthMetrics).where(eq(healthMetrics.userId, req.user!.id)).orderBy(desc(healthMetrics.date)),
+        db.select().from(medications).where(eq(medications.userId, req.user!.id)),
+        db.select().from(medicationLogs).where(eq(medicationLogs.userId, req.user!.id)).orderBy(desc(medicationLogs.takenAt)),
+        db.select().from(healthNotes).where(eq(healthNotes.userId, req.user!.id)).orderBy(desc(healthNotes.createdAt)),
+        db.select().from(activityLogs).where(eq(activityLogs.userId, req.user!.id)).orderBy(desc(activityLogs.date))
+      ]);
 
-      const csvContent = "Date,Blood Sugar,Blood Pressure Systolic,Blood Pressure Diastolic\n" +
-        metrics.map(m => `${new Date(m.date).toLocaleDateString()},${m.bloodSugar},${m.bloodPressureSystolic},${m.bloodPressureDiastolic}`).join("\n");
+      let csvContent = "HEALTH METRICS\n";
+      csvContent += "Date,Blood Sugar,Blood Pressure Systolic,Blood Pressure Diastolic,Cholesterol,Medications,Meal Notes,Doctor Notes\n";
+      csvContent += metricsData.map(m => 
+        `${new Date(m.date).toLocaleDateString()},${m.bloodSugar || ''},${m.bloodPressureSystolic || ''},${m.bloodPressureDiastolic || ''},${m.cholesterol || ''},${m.medications || ''},${m.mealNotes || ''},${m.doctorNotes || ''}`
+      ).join("\n");
+
+      csvContent += "\n\nMEDICATIONS\n";
+      csvContent += "Name,Dosage,Frequency,Instructions,Created At\n";
+      csvContent += medicationsData.map(m =>
+        `${m.name},${m.dosage || ''},${m.frequency || ''},${m.instructions || ''},${new Date(m.createdAt!).toLocaleDateString()}`
+      ).join("\n");
+
+      csvContent += "\n\nMEDICATION LOGS\n";
+      csvContent += "Medication ID,Status,Taken At,Notes\n";
+      csvContent += medLogsData.map(m =>
+        `${m.medicationId},${m.status},${new Date(m.takenAt!).toLocaleDateString()},${m.notes || ''}`
+      ).join("\n");
+
+      csvContent += "\n\nHEALTH NOTES\n";
+      csvContent += "Category,Title,Content,Created At\n";
+      csvContent += notesData.map(n =>
+        `${n.category},${n.title},${n.content},${new Date(n.createdAt!).toLocaleDateString()}`
+      ).join("\n");
+
+      csvContent += "\n\nACTIVITY LOGS\n";
+      csvContent += "Type,Value,Duration (minutes),Notes,Date\n";
+      csvContent += activityData.map(a =>
+        `${a.type},${a.value},${a.duration || ''},${a.notes || ''},${new Date(a.date!).toLocaleDateString()}`
+      ).join("\n");
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=health-data.csv');
       res.send(csvContent);
     } catch (error) {
       console.error('Failed to export CSV:', error);
@@ -194,14 +224,16 @@ export function registerRoutes(app: Express): Server {
 
       // Title
       doc.fontSize(25).text('Health Data Report', 100, 100);
-      
       let y = 150;
 
-      // Health Metrics
-      const metrics = await db.query.healthMetrics.findMany({
-        where: eq(healthMetrics.userId, req.user!.id)
-      });
-      
+      const [metrics, meds, medLogs, notes, activities] = await Promise.all([
+        db.select().from(healthMetrics).where(eq(healthMetrics.userId, req.user!.id)).orderBy(desc(healthMetrics.date)),
+        db.select().from(medications).where(eq(medications.userId, req.user!.id)),
+        db.select().from(medicationLogs).where(eq(medicationLogs.userId, req.user!.id)).orderBy(desc(medicationLogs.takenAt)),
+        db.select().from(healthNotes).where(eq(healthNotes.userId, req.user!.id)).orderBy(desc(healthNotes.createdAt)),
+        db.select().from(activityLogs).where(eq(activityLogs.userId, req.user!.id)).orderBy(desc(activityLogs.date))
+      ]);
+
       if (metrics.length > 0) {
         doc.fontSize(16).text('Health Metrics', 100, y);
         y += 30;
@@ -210,16 +242,17 @@ export function registerRoutes(app: Express): Server {
           doc.text(`Date: ${new Date(metric.date).toLocaleDateString()}`, 100, y);
           doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`, 100, y + 20);
           doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`, 100, y + 40);
-          y += 80;
+          doc.text(`Cholesterol: ${metric.cholesterol || 'N/A'}`, 100, y + 60);
+          if (metric.medications) doc.text(`Medications: ${metric.medications}`, 100, y + 80);
+          if (metric.mealNotes) doc.text(`Meal Notes: ${metric.mealNotes}`, 100, y + 100);
+          if (metric.doctorNotes) doc.text(`Doctor Notes: ${metric.doctorNotes}`, 100, y + 120);
+          y += 160;
         });
       }
 
-      // Medications
-      const meds = await db.query.medications.findMany({
-        where: eq(medications.userId, req.user!.id)
-      });
-      
       if (meds.length > 0) {
+        doc.addPage();
+        y = 50;
         doc.fontSize(16).text('Medications', 100, y);
         y += 30;
         doc.fontSize(12);
@@ -227,16 +260,30 @@ export function registerRoutes(app: Express): Server {
           doc.text(`Name: ${med.name}`, 100, y);
           doc.text(`Dosage: ${med.dosage || 'N/A'}`, 100, y + 20);
           doc.text(`Frequency: ${med.frequency || 'N/A'}`, 100, y + 40);
-          y += 80;
+          doc.text(`Instructions: ${med.instructions || 'N/A'}`, 100, y + 60);
+          doc.text(`Added: ${new Date(med.createdAt!).toLocaleDateString()}`, 100, y + 80);
+          y += 120;
         });
       }
 
-      // Health Notes
-      const notes = await db.query.healthNotes.findMany({
-        where: eq(healthNotes.userId, req.user!.id)
-      });
-      
+      if (medLogs.length > 0) {
+        doc.addPage();
+        y = 50;
+        doc.fontSize(16).text('Medication Logs', 100, y);
+        y += 30;
+        doc.fontSize(12);
+        medLogs.forEach(log => {
+          doc.text(`Medication ID: ${log.medicationId}`, 100, y);
+          doc.text(`Status: ${log.status}`, 100, y + 20);
+          doc.text(`Taken At: ${new Date(log.takenAt!).toLocaleDateString()}`, 100, y + 40);
+          if (log.notes) doc.text(`Notes: ${log.notes}`, 100, y + 60);
+          y += 100;
+        });
+      }
+
       if (notes.length > 0) {
+        doc.addPage();
+        y = 50;
         doc.fontSize(16).text('Health Notes', 100, y);
         y += 30;
         doc.fontSize(12);
@@ -244,7 +291,24 @@ export function registerRoutes(app: Express): Server {
           doc.text(`Category: ${note.category}`, 100, y);
           doc.text(`Title: ${note.title}`, 100, y + 20);
           doc.text(`Content: ${note.content}`, 100, y + 40);
-          y += 80;
+          doc.text(`Created: ${new Date(note.createdAt!).toLocaleDateString()}`, 100, y + 60);
+          y += 100;
+        });
+      }
+
+      if (activities.length > 0) {
+        doc.addPage();
+        y = 50;
+        doc.fontSize(16).text('Activity Logs', 100, y);
+        y += 30;
+        doc.fontSize(12);
+        activities.forEach(activity => {
+          doc.text(`Type: ${activity.type}`, 100, y);
+          doc.text(`Value: ${activity.value}`, 100, y + 20);
+          if (activity.duration) doc.text(`Duration: ${activity.duration} minutes`, 100, y + 40);
+          if (activity.notes) doc.text(`Notes: ${activity.notes}`, 100, y + 60);
+          doc.text(`Date: ${new Date(activity.date!).toLocaleDateString()}`, 100, y + 80);
+          y += 120;
         });
       }
 
