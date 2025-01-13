@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthNotes, insertHealthNoteSchema, healthMetrics, medications } from "@db/schema";
+import { healthNotes, insertHealthNoteSchema, healthMetrics, medications, medicationLogs, insertActivityLogSchema, activityLogs } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
 
 
@@ -120,7 +120,7 @@ export function registerRoutes(app: Express): Server {
         .from(activityLogs)
         .where(eq(activityLogs.userId, req.user!.id))
         .orderBy(desc(activityLogs.date));
-      
+
       res.json(logs);
     } catch (error) {
       console.error('Failed to fetch activity logs:', error);
@@ -164,7 +164,7 @@ export function registerRoutes(app: Express): Server {
 
     try {
       const { bloodSugar, bloodPressureSystolic, bloodPressureDiastolic, cholesterol, medications, mealNotes, doctorNotes } = req.body;
-      
+
       const [metric] = await db.insert(healthMetrics)
         .values({
           userId: req.user!.id,
@@ -186,6 +186,26 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/medications/log", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const { medicationId, status } = req.body;
+      const [log] = await db.insert(medicationLogs)
+        .values({
+          userId: req.user!.id,
+          medicationId,
+          status,
+          date: new Date()
+        })
+        .returning();
+      res.json(log);
+    } catch (error) {
+      console.error('Failed to log medication:', error);
+      res.status(500).json({ error: "Failed to log medication" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

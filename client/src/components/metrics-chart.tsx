@@ -15,12 +15,13 @@ type Props = {
 };
 
 export default function MetricsChart({ data }: Props) {
-  const chartData = data.map((metric) => ({
+  const chartData = [...data].reverse().slice(0, 10).reverse().map((metric) => ({
     date: new Date(metric.date).toLocaleDateString(),
     bloodSugar: metric.bloodSugar,
     systolic: metric.bloodPressureSystolic,
     diastolic: metric.bloodPressureDiastolic,
     cholesterol: metric.cholesterol,
+    medications: metric.medications,
   }));
 
   return (
