@@ -214,7 +214,7 @@ export default function MedicationTracker() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent History</CardTitle>
+            <CardTitle>Recent Medication History</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] pr-4">
@@ -223,26 +223,32 @@ export default function MedicationTracker() {
                   const medication = medications.find(
                     (m) => m.id === log.medicationId
                   );
+                  const date = new Date(log.takenAt);
                   return (
                     <div
                       key={log.id}
                       className="p-4 border rounded-lg space-y-1"
                     >
-                      <div className="flex items-center gap-2">
-                        {log.status === "taken" ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <X className="h-4 w-4 text-red-500" />
-                        )}
-                        <span className="font-medium">
-                          {medication?.name || "Unknown"}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {log.status === "taken" ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className="font-medium">
+                            {medication?.name || "Unknown"}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            ({medication?.dosage})
+                          </span>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {date.toLocaleDateString()} at {date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(log.takenAt).toLocaleString()}
-                      </p>
                       {log.notes && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mt-1">
                           Note: {log.notes}
                         </p>
                       )}
