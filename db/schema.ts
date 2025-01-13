@@ -135,6 +135,14 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+// Activity log schemas
+export const insertActivityLogSchema = createInsertSchema(activityLogs, {
+  type: z.enum(["steps", "walking", "exercise"]),
+  value: z.number().min(0, "Value must be positive"),
+  duration: z.number().min(0, "Duration must be positive").optional(),
+});
+export const selectActivityLogSchema = createSelectSchema(activityLogs);
+
 // Schemas
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);

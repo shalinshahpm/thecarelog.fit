@@ -110,6 +110,53 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/activity-logs", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const logs = await db.select()
+        .from(activityLogs)
+        .where(eq(activityLogs.userId, req.user!.id))
+        .orderBy(desc(activityLogs.date));
+      
+      res.json(logs);
+    } catch (error) {
+      console.error('Failed to fetch activity logs:', error);
+      res.status(500).json({ error: "Failed to fetch activity logs" });
+    }
+  });
+
+  app.post("/api/activity-logs", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const result = insertActivityLogSchema.safeParse({
+        ...req.body,
+        userId: req.user!.id
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.error.issues });
+      }
+
+      const [log] = await db.insert(activityLogs)
+        .values({
+          ...result.data,
+          date: new Date()
+        })
+        .returning();
+
+      res.json(log);
+    } catch (error) {
+      console.error('Failed to create activity log:', error);
+      res.status(500).json({ error: "Failed to create activity log" });
+    }
+  });
+
   app.post("/api/health-metrics", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });

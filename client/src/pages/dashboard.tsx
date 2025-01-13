@@ -5,6 +5,7 @@ import MetricsChart from "@/components/metrics-chart";
 import MedicationTracker from "@/components/medication-tracker";
 import HealthNotes from "@/components/health-notes";
 import SubscriptionCard from "@/components/subscription-card";
+import ActivityTracker from "@/components/activity-tracker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -55,6 +56,8 @@ export default function Dashboard() {
         <MedicationTracker />
 
         <HealthNotes />
+        
+        <ActivityTracker />
 
         <Card>
           <CardContent className="p-6">
