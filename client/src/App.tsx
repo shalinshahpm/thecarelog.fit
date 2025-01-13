@@ -25,6 +25,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/login" component={AuthPage} />
+        <Route path="/register" component={AuthPage} />
         <Route component={NotFound} />
       </Switch>
     );
