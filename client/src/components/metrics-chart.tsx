@@ -37,10 +37,12 @@ export default function MetricsChart({ data }: Props) {
 
   const chartData = filterData().map((metric) => ({
     date: new Date(metric.date).toLocaleDateString(),
-    bloodSugar: metric.bloodSugar ? Number(metric.bloodSugar) : null,
-    systolic: metric.bloodPressureSystolic ? Number(metric.bloodPressureSystolic) : null,
-    diastolic: metric.bloodPressureDiastolic ? Number(metric.bloodPressureDiastolic) : null
-  })).filter(data => data.bloodSugar || data.systolic || data.diastolic);
+    bloodSugar: metric.bloodSugar !== null ? Number(metric.bloodSugar) : null,
+    systolic: metric.bloodPressureSystolic !== null ? Number(metric.bloodPressureSystolic) : null,
+    diastolic: metric.bloodPressureDiastolic !== null ? Number(metric.bloodPressureDiastolic) : null
+  }));
+
+  console.log('Chart Data:', chartData); // For debugging
 
   return (
     <div className="space-y-4">
