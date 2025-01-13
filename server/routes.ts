@@ -60,7 +60,7 @@ export function registerRoutes(app: Express): Server {
         .where(eq(healthNotes.userId, req.user!.id))
         .orderBy(desc(healthNotes.updatedAt));
 
-      res.json(notes);
+      res.setHeader('Content-Type', 'application/json').json(notes);
     } catch (error) {
       console.error('Failed to fetch health notes:', error);
       res.status(500).send("Failed to fetch health notes");
