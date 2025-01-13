@@ -157,6 +157,50 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/export/csv", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const metrics = await db.select()
+        .from(healthMetrics)
+        .where(eq(healthMetrics.userId, req.user!.id))
+        .orderBy(desc(healthMetrics.date));
+      
+      const csvContent = "Date,Blood Sugar,Blood Pressure Systolic,Blood Pressure Diastolic\n" +
+        metrics.map(m => `${new Date(m.date).toLocaleDateString()},${m.bloodSugar},${m.bloodPressureSystolic},${m.bloodPressureDiastolic}`).join("\n");
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.csv');
+      res.send(csvContent);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
+  app.get("/api/export/pdf", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    try {
+      const metrics = await db.select()
+        .from(healthMetrics)
+        .where(eq(healthMetrics.userId, req.user!.id))
+        .orderBy(desc(healthMetrics.date));
+      
+      // Send PDF file
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=health-metrics.pdf');
+      // Implementation of PDF generation would go here
+      // For now, sending a simple response
+      res.send("PDF generation to be implemented");
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+      res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+
   app.post("/api/health-metrics", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: "Not authenticated" });

@@ -61,31 +61,14 @@ export default function Dashboard() {
 
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">Recent Entries</h2>
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-4">
-                {recentMetrics.map((metric) => (
-                  <div
-                    key={metric.id}
-                    className="p-4 border rounded-lg space-y-2"
-                  >
-                    <p className="text-lg">
-                      Date: {new Date(metric.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-lg">
-                      Blood Sugar: {metric.bloodSugar} mg/dL
-                    </p>
-                    <p className="text-lg">
-                      Blood Pressure: {metric.bloodPressureSystolic}/
-                      {metric.bloodPressureDiastolic} mmHg
-                    </p>
-                    <p className="text-lg">
-                      Cholesterol: {metric.cholesterol} mg/dL
-                    </p>
-                  </div>
-                ))}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Export Data</h2>
+              <div className="space-x-2">
+                <Button onClick={() => exportData('csv')}>Export CSV</Button>
+                <Button onClick={() => exportData('pdf')}>Export PDF</Button>
+                <Button onClick={() => shareWhatsApp()}>Share WhatsApp</Button>
               </div>
-            </ScrollArea>
+            </div>
           </CardContent>
         </Card>
 

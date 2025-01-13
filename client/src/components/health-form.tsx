@@ -2,17 +2,12 @@ import { useForm } from "react-hook-form";
 import { useHealthMetrics } from "@/hooks/use-health-metrics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
 type FormData = {
   bloodSugar: number;
   bloodPressureSystolic: number;
   bloodPressureDiastolic: number;
-  cholesterol: number;
-  medications: string;
-  mealNotes: string;
-  doctorNotes: string;
 };
 
 export default function HealthForm() {
@@ -65,43 +60,6 @@ export default function HealthForm() {
             {...register("bloodPressureDiastolic", { valueAsNumber: true })}
           />
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-lg font-medium">Cholesterol (mg/dL)</label>
-        <Input
-          type="number"
-          step="0.1"
-          className="text-lg p-6"
-          {...register("cholesterol", { valueAsNumber: true })}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-lg font-medium">Medications</label>
-        <Textarea
-          className="text-lg p-4"
-          {...register("medications")}
-          placeholder="List your medications..."
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-lg font-medium">Meal Notes</label>
-        <Textarea
-          className="text-lg p-4"
-          {...register("mealNotes")}
-          placeholder="What did you eat today?"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-lg font-medium">Doctor Notes</label>
-        <Textarea
-          className="text-lg p-4"
-          {...register("doctorNotes")}
-          placeholder="Notes from your doctor visit..."
-        />
       </div>
 
       <Button type="submit" className="w-full text-lg p-6">
