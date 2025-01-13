@@ -112,6 +112,35 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/health-metrics", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const { bloodSugar, bloodPressureSystolic, bloodPressureDiastolic, cholesterol, medications, mealNotes, doctorNotes } = req.body;
+      
+      const [metric] = await db.insert(healthMetrics)
+        .values({
+          userId: req.user!.id,
+          bloodSugar: bloodSugar || null,
+          bloodPressureSystolic: bloodPressureSystolic || null,
+          bloodPressureDiastolic: bloodPressureDiastolic || null,
+          cholesterol: cholesterol || null,
+          medications: medications || null,
+          mealNotes: mealNotes || null,
+          doctorNotes: doctorNotes || null,
+          date: new Date()
+        })
+        .returning();
+
+      res.setHeader('Content-Type', 'application/json').json(metric);
+    } catch (error) {
+      console.error('Failed to save health metrics:', error);
+      res.status(500).json({ error: "Failed to save health metrics" });
+    }
+  });
+
 
   const httpServer = createServer(app);
   return httpServer;

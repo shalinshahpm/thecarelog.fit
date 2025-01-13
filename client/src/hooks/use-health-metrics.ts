@@ -14,7 +14,13 @@ export function useHealthMetrics() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(newMetric),
+        body: JSON.stringify({
+          ...newMetric,
+          bloodSugar: newMetric.bloodSugar ? Number(newMetric.bloodSugar) : null,
+          bloodPressureSystolic: newMetric.bloodPressureSystolic ? Number(newMetric.bloodPressureSystolic) : null,
+          bloodPressureDiastolic: newMetric.bloodPressureDiastolic ? Number(newMetric.bloodPressureDiastolic) : null,
+          cholesterol: newMetric.cholesterol ? Number(newMetric.cholesterol) : null
+        }),
       });
 
       if (!res.ok) {
@@ -26,7 +32,8 @@ export function useHealthMetrics() {
           throw new Error(errorText || "Failed to save health metrics");
         }
       }
-      return res.json();
+      const data = await res.json();
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/health-metrics"] });
