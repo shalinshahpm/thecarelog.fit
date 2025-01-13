@@ -25,12 +25,16 @@ export default function AuthPage() {
       }
 
       if (isLogin) {
-        await login({ username, password });
+        const loginResult = await login({ username, password });
+        if (loginResult.ok) {
+          setLocation("/dashboard");
+        }
       } else {
-        await register({ username, password, email });
+        const registerResult = await register({ username, password, email });
+        if (registerResult.ok) {
+          setLocation("/dashboard");
+        }
       }
-      
-      setLocation("/dashboard");
     } catch (error: any) {
       const errorMessage = error?.response?.data || error.message || "An unexpected error occurred";
       toast({
