@@ -234,81 +234,82 @@ export function registerRoutes(app: Express): Server {
         db.select().from(activityLogs).where(eq(activityLogs.userId, req.user!.id)).orderBy(desc(activityLogs.date))
       ]);
 
+      // Title page
+      doc.fontSize(25).text('Health Data Report', {align: 'center'});
+      doc.moveDown();
+      doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, {align: 'center'});
+      
       if (metrics.length > 0) {
-        doc.fontSize(16).text('Health Metrics', 100, y);
-        y += 30;
-        doc.fontSize(12);
+        doc.addPage();
+        doc.fontSize(20).text('HEALTH METRICS', {align: 'center'});
+        doc.moveDown();
         metrics.forEach(metric => {
-          doc.text(`Date: ${new Date(metric.date).toLocaleDateString()}`, 100, y);
-          doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`, 100, y + 20);
-          doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`, 100, y + 40);
-          doc.text(`Cholesterol: ${metric.cholesterol || 'N/A'}`, 100, y + 60);
-          if (metric.medications) doc.text(`Medications: ${metric.medications}`, 100, y + 80);
-          if (metric.mealNotes) doc.text(`Meal Notes: ${metric.mealNotes}`, 100, y + 100);
-          if (metric.doctorNotes) doc.text(`Doctor Notes: ${metric.doctorNotes}`, 100, y + 120);
-          y += 160;
+          doc.fontSize(14).text(new Date(metric.date).toLocaleDateString());
+          doc.fontSize(12);
+          doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`);
+          doc.text(`Blood Pressure: ${metric.bloodPressureSystolic || 'N/A'}/${metric.bloodPressureDiastolic || 'N/A'}`);
+          doc.text(`Cholesterol: ${metric.cholesterol || 'N/A'}`);
+          if (metric.medications) doc.text(`Medications: ${metric.medications}`);
+          if (metric.mealNotes) doc.text(`Meal Notes: ${metric.mealNotes}`);
+          if (metric.doctorNotes) doc.text(`Doctor Notes: ${metric.doctorNotes}`);
+          doc.moveDown(2);
         });
       }
 
       if (meds.length > 0) {
         doc.addPage();
-        y = 50;
-        doc.fontSize(16).text('Medications', 100, y);
-        y += 30;
-        doc.fontSize(12);
+        doc.fontSize(20).text('MEDICATIONS', {align: 'center'});
+        doc.moveDown();
         meds.forEach(med => {
-          doc.text(`Name: ${med.name}`, 100, y);
-          doc.text(`Dosage: ${med.dosage || 'N/A'}`, 100, y + 20);
-          doc.text(`Frequency: ${med.frequency || 'N/A'}`, 100, y + 40);
-          doc.text(`Instructions: ${med.instructions || 'N/A'}`, 100, y + 60);
-          doc.text(`Added: ${new Date(med.createdAt!).toLocaleDateString()}`, 100, y + 80);
-          y += 120;
+          doc.fontSize(14).text(med.name);
+          doc.fontSize(12);
+          doc.text(`Dosage: ${med.dosage || 'N/A'}`);
+          doc.text(`Frequency: ${med.frequency || 'N/A'}`);
+          doc.text(`Instructions: ${med.instructions || 'N/A'}`);
+          doc.text(`Added: ${new Date(med.createdAt!).toLocaleDateString()}`);
+          doc.moveDown(2);
         });
       }
 
       if (medLogs.length > 0) {
         doc.addPage();
-        y = 50;
-        doc.fontSize(16).text('Medication Logs', 100, y);
-        y += 30;
-        doc.fontSize(12);
+        doc.fontSize(20).text('MEDICATION LOGS', {align: 'center'});
+        doc.moveDown();
         medLogs.forEach(log => {
-          doc.text(`Medication ID: ${log.medicationId}`, 100, y);
-          doc.text(`Status: ${log.status}`, 100, y + 20);
-          doc.text(`Taken At: ${new Date(log.takenAt!).toLocaleDateString()}`, 100, y + 40);
-          if (log.notes) doc.text(`Notes: ${log.notes}`, 100, y + 60);
-          y += 100;
+          doc.fontSize(14).text(`Medication Log - ${new Date(log.takenAt!).toLocaleDateString()}`);
+          doc.fontSize(12);
+          doc.text(`Medication ID: ${log.medicationId}`);
+          doc.text(`Status: ${log.status}`);
+          if (log.notes) doc.text(`Notes: ${log.notes}`);
+          doc.moveDown(2);
         });
       }
 
       if (notes.length > 0) {
         doc.addPage();
-        y = 50;
-        doc.fontSize(16).text('Health Notes', 100, y);
-        y += 30;
-        doc.fontSize(12);
+        doc.fontSize(20).text('HEALTH NOTES', {align: 'center'});
+        doc.moveDown();
         notes.forEach(note => {
-          doc.text(`Category: ${note.category}`, 100, y);
-          doc.text(`Title: ${note.title}`, 100, y + 20);
-          doc.text(`Content: ${note.content}`, 100, y + 40);
-          doc.text(`Created: ${new Date(note.createdAt!).toLocaleDateString()}`, 100, y + 60);
-          y += 100;
+          doc.fontSize(14).text(note.title);
+          doc.fontSize(12);
+          doc.text(`Category: ${note.category}`);
+          doc.text(`Content: ${note.content}`);
+          doc.text(`Created: ${new Date(note.createdAt!).toLocaleDateString()}`);
+          doc.moveDown(2);
         });
       }
 
       if (activities.length > 0) {
         doc.addPage();
-        y = 50;
-        doc.fontSize(16).text('Activity Logs', 100, y);
-        y += 30;
-        doc.fontSize(12);
+        doc.fontSize(20).text('ACTIVITY LOGS', {align: 'center'});
+        doc.moveDown();
         activities.forEach(activity => {
-          doc.text(`Type: ${activity.type}`, 100, y);
-          doc.text(`Value: ${activity.value}`, 100, y + 20);
-          if (activity.duration) doc.text(`Duration: ${activity.duration} minutes`, 100, y + 40);
-          if (activity.notes) doc.text(`Notes: ${activity.notes}`, 100, y + 60);
-          doc.text(`Date: ${new Date(activity.date!).toLocaleDateString()}`, 100, y + 80);
-          y += 120;
+          doc.fontSize(14).text(`${activity.type} - ${new Date(activity.date!).toLocaleDateString()}`);
+          doc.fontSize(12);
+          doc.text(`Value: ${activity.value}`);
+          if (activity.duration) doc.text(`Duration: ${activity.duration} minutes`);
+          if (activity.notes) doc.text(`Notes: ${activity.notes}`);
+          doc.moveDown(2);
         });
       }
 
