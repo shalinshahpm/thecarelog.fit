@@ -39,6 +39,19 @@ app.use((req, res, next) => {
 });
 
 // Global error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+const server = registerRoutes(app);
+const port = process.env.PORT || 5000;
+
+setupVite(app).then(() => {
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`Server is running on port ${port}`);
+  });
+});er
 const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Server error:', err);
   const status = err.status || err.statusCode || 500;
