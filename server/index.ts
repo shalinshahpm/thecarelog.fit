@@ -51,7 +51,8 @@ setupVite(app).then(() => {
   server.listen(port, '0.0.0.0', () => {
     console.log(`Server is running on port ${port}`);
   });
-});er
+});
+
 const errorHandler = (err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Server error:', err);
   const status = err.status || err.statusCode || 500;
