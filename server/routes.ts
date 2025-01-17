@@ -186,7 +186,7 @@ export function registerRoutes(app: Express): Server {
       csvContent += "Medication Name,Status,Taken At,Notes\n";
       csvContent += medLogsData.map(m => {
         const medication = medicationsData.find(med => med.id === m.medicationId);
-        return `${medication?.name || 'Unknown'},${m.status},${new Date(m.takenAt!).toLocaleDateString()},${m.notes || ''}`
+        return `${medication?.name || 'Unknown'},${m.status},${new Date(m.takenAt!).toLocaleDateString()},${m.notes || ''}`;
       }).join("\n");
 
       csvContent += "\n\nHEALTH NOTES\n";
