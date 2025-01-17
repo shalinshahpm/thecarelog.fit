@@ -183,10 +183,11 @@ export function registerRoutes(app: Express): Server {
       ).join("\n");
 
       csvContent += "\n\nMEDICATION LOGS\n";
-      csvContent += "Medication ID,Status,Taken At,Notes\n";
-      csvContent += medLogsData.map(m =>
-        `${m.medicationId},${m.status},${new Date(m.takenAt!).toLocaleDateString()},${m.notes || ''}`
-      ).join("\n");
+      csvContent += "Medication Name,Status,Taken At,Notes\n";
+      csvContent += medLogsData.map(m => {
+        const medication = medicationsData.find(med => med.id === m.medicationId);
+        return `${medication?.name || 'Unknown'},${m.status},${new Date(m.takenAt!).toLocaleDateString()},${m.notes || ''}`
+      }).join("\n");
 
       csvContent += "\n\nHEALTH NOTES\n";
       csvContent += "Category,Title,Content,Created At\n";
@@ -239,11 +240,20 @@ export function registerRoutes(app: Express): Server {
       doc.moveDown();
       doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, {align: 'center'});
       
+      const itemsPerPage = 50;
+      
       if (metrics.length > 0) {
         doc.addPage();
         doc.fontSize(20).text('HEALTH METRICS', {align: 'center'});
         doc.moveDown();
-        metrics.forEach(metric => {
+        
+        for (let i = 0; i < metrics.length; i++) {
+          const metric = metrics[i];
+          if (i > 0 && i % itemsPerPage === 0) {
+            doc.addPage();
+            doc.fontSize(20).text('HEALTH METRICS (continued)', {align: 'center'});
+            doc.moveDown();
+          }
           doc.fontSize(14).text(new Date(metric.date).toLocaleDateString());
           doc.fontSize(12);
           doc.text(`Blood Sugar: ${metric.bloodSugar || 'N/A'}`);
@@ -275,14 +285,23 @@ export function registerRoutes(app: Express): Server {
         doc.addPage();
         doc.fontSize(20).text('MEDICATION LOGS', {align: 'center'});
         doc.moveDown();
-        medLogs.forEach(log => {
+        for (let i = 0; i < medLogs.length; i++) {
+          const log = medLogs[i];
+          const medication = meds.find(m => m.id === log.medicationId);
+          
+          if (i > 0 && i % itemsPerPage === 0) {
+            doc.addPage();
+            doc.fontSize(20).text('MEDICATION LOGS (continued)', {align: 'center'});
+            doc.moveDown();
+          }
+          
           doc.fontSize(14).text(`Medication Log - ${new Date(log.takenAt!).toLocaleDateString()}`);
           doc.fontSize(12);
-          doc.text(`Medication ID: ${log.medicationId}`);
+          doc.text(`Medication: ${medication?.name || 'Unknown'}`);
           doc.text(`Status: ${log.status}`);
           if (log.notes) doc.text(`Notes: ${log.notes}`);
           doc.moveDown(2);
-        });
+        }
       }
 
       if (notes.length > 0) {
