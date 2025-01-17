@@ -2,9 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { db } from "@db";
-import { healthNotes, insertHealthNoteSchema, healthMetrics, medications, medicationLogs, insertActivityLogSchema, activityLogs } from "@db/schema";
-import { eq, desc } from "drizzle-orm";
-
+import { healthNotes, insertHealthNoteSchema, healthMetrics, medications, medicationLogs, insertActivityLogSchema, activityLogs, users } from "@db/schema";
+import { eq, desc, sql } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
   // First set up auth
@@ -361,7 +360,60 @@ export function registerRoutes(app: Express): Server {
         })
         .returning();
 
-      res.setHeader('Content-Type', 'application/json').json(metric);
+      // Update streak
+      const [user] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user!.id))
+        .limit(1);
+
+      const now = new Date();
+      const today = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+      if (user.lastActivityDate) {
+        const lastActivity = new Date(user.lastActivityDate);
+        const lastActivityDay = new Date(lastActivity.getUTCFullYear(), lastActivity.getUTCMonth(), lastActivity.getUTCDate());
+
+        // Calculate days between last activity and today
+        const diffTime = today.getTime() - lastActivityDay.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Increment streak if last activity was yesterday
+          await db.update(users)
+            .set({
+              currentStreak: user.currentStreak + 1,
+              lastActivityDate: today
+            })
+            .where(eq(users.id, req.user!.id));
+        } else if (diffDays > 1) {
+          // Reset streak if more than a day has passed
+          await db.update(users)
+            .set({
+              currentStreak: 1,
+              lastActivityDate: today
+            })
+            .where(eq(users.id, req.user!.id));
+        }
+      } else {
+        // First activity, set streak to 1
+        await db.update(users)
+          .set({
+            currentStreak: 1,
+            lastActivityDate: today
+          })
+          .where(eq(users.id, req.user!.id));
+      }
+
+      // Fetch updated user data
+      const [updatedUser] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user!.id))
+        .limit(1);
+
+      res.setHeader('Content-Type', 'application/json').json({
+        metric,
+        streak: updatedUser.currentStreak
+      });
     } catch (error) {
       console.error('Failed to save health metrics:', error);
       res.status(500).json({ error: "Failed to save health metrics" });
