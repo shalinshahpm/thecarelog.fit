@@ -172,7 +172,7 @@ export function registerRoutes(app: Express): Server {
 
       let csvContent = "HEALTH METRICS\n";
       csvContent += "Date,Blood Sugar,Blood Pressure Systolic,Blood Pressure Diastolic,Cholesterol,Medications,Meal Notes,Doctor Notes\n";
-      csvContent += metricsData.map(m => 
+      csvContent += metricsData.map(m =>
         `${new Date(m.date).toLocaleDateString()},${m.bloodSugar || ''},${m.bloodPressureSystolic || ''},${m.bloodPressureDiastolic || ''},${m.cholesterol || ''},${m.medications || ''},${m.mealNotes || ''},${m.doctorNotes || ''}`
       ).join("\n");
 
@@ -239,14 +239,14 @@ export function registerRoutes(app: Express): Server {
       doc.fontSize(25).text('Health Data Report', {align: 'center'});
       doc.moveDown();
       doc.fontSize(12).text(`Generated on: ${new Date().toLocaleDateString()}`, {align: 'center'});
-      
+
       const itemsPerPage = 50;
-      
+
       if (metrics.length > 0) {
         doc.addPage();
         doc.fontSize(20).text('HEALTH METRICS', {align: 'center'});
         doc.moveDown();
-        
+
         for (let i = 0; i < metrics.length; i++) {
           const metric = metrics[i];
           if (i > 0 && i % itemsPerPage === 0) {
@@ -263,7 +263,7 @@ export function registerRoutes(app: Express): Server {
           if (metric.mealNotes) doc.text(`Meal Notes: ${metric.mealNotes}`);
           if (metric.doctorNotes) doc.text(`Doctor Notes: ${metric.doctorNotes}`);
           doc.moveDown(2);
-        });
+        }
       }
 
       if (meds.length > 0) {
@@ -288,13 +288,13 @@ export function registerRoutes(app: Express): Server {
         for (let i = 0; i < medLogs.length; i++) {
           const log = medLogs[i];
           const medication = meds.find(m => m.id === log.medicationId);
-          
+
           if (i > 0 && i % itemsPerPage === 0) {
             doc.addPage();
             doc.fontSize(20).text('MEDICATION LOGS (continued)', {align: 'center'});
             doc.moveDown();
           }
-          
+
           doc.fontSize(14).text(`Medication Log - ${new Date(log.takenAt!).toLocaleDateString()}`);
           doc.fontSize(12);
           doc.text(`Medication: ${medication?.name || 'Unknown'}`);
